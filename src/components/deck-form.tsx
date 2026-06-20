@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { TextField } from '@/components/text-field';
+import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 
 export interface DeckFormValues {
@@ -15,10 +16,12 @@ export interface DeckFormValues {
 export function DeckForm({
   initial,
   submitLabel,
+  notice,
   onSubmit,
 }: {
   initial: DeckFormValues;
   submitLabel: string;
+  notice?: string;
   onSubmit: (values: DeckFormValues) => void;
 }) {
   const [name, setName] = useState(initial.name);
@@ -66,6 +69,11 @@ export function DeckForm({
         disabled={!canSubmit}
         onPress={() => onSubmit({ name, description, knownLang, targetLang })}
       />
+      {notice ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {notice}
+        </ThemedText>
+      ) : null}
     </ScrollView>
   );
 }

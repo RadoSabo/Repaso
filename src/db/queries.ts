@@ -43,6 +43,16 @@ export const deckSummariesQuery = () =>
 export const cardsForDeckQuery = (deckId: number) =>
   db.select().from(cards).where(eq(cards.deckId, deckId)).orderBy(desc(cards.createdAt));
 
+/** Number of cards currently in a deck. */
+export function countCardsInDeck(deckId: number): number {
+  const row = db
+    .select({ count: sql<number>`count(*)` })
+    .from(cards)
+    .where(eq(cards.deckId, deckId))
+    .get();
+  return row?.count ?? 0;
+}
+
 export const deckByIdQuery = (deckId: number) =>
   db.select().from(decks).where(eq(decks.id, deckId));
 

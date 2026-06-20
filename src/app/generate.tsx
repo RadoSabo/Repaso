@@ -9,9 +9,10 @@ import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { createCards, createDeck, getDeck } from '@/db/queries';
+import { countCardsInDeck, createCards, createDeck, getDeck } from '@/db/queries';
 import { useTheme } from '@/hooks/use-theme';
 import { generateCards, GenerationError, type DraftCard } from '@/lib/generation';
+import { MAX_CARDS_PER_DECK } from '@/lib/limits';
 import { useSettings } from '@/store/settings';
 
 type Draft = DraftCard & { include: boolean };
@@ -19,6 +20,9 @@ type Draft = DraftCard & { include: boolean };
 export default function GenerateScreen() {
   const { deckId } = useLocalSearchParams<{ deckId?: string }>();
   const existingDeck = deckId ? getDeck(Number(deckId)) : undefined;
+  const usedCount = existingDeck ? countCardsInDeck(existingDeck.id) : 0;
+  const remaining = MAX_CARDS_PER_DECK - usedCount;
+  const deckFull = remaining <= 0;
 
   const theme = useTheme();
   const router = useRouter();
@@ -28,7 +32,7 @@ export default function GenerateScreen() {
   const [deckName, setDeckName] = useState('');
   const [knownLang, setKnownLang] = useState(existingDeck?.knownLang ?? settings.knownLang);
   const [targetLang, setTargetLang] = useState(existingDeck?.targetLang ?? settings.targetLang);
-  const [itemsText, setItemsText] = useState('');
+  const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
@@ -40,7 +44,8 @@ export default function GenerateScreen() {
       const cards = await generateCards({
         knownLang,
         targetLang,
-        items: itemsText.split('\n'),
+        input: inputText,
+        max: remaining,
       });
       if (cards.length === 0) {
         setError('No cards were generated. Try different input.');
@@ -137,11 +142,12 @@ export default function GenerateScreen() {
         )}
 
         <TextField
-          label="Words or phrases (one per line)"
-          value={itemsText}
-          onChangeText={setItemsText}
-          placeholder={'house\nto run\ngood morning'}
+          label="Words, phrases, or sentences"
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder={'house, to run, good morning\nShe walks to school every day.'}
           multiline
+          editable={!deckFull}
           style={styles.itemsInput}
         />
 
@@ -152,7 +158,17 @@ export default function GenerateScreen() {
         ) : null}
 
         <ThemedText type="small" themeColor="textSecondary">
-          Front = a sentence using the word in {knownLang}. Back = its {targetLang} translation.
+          Type anything — single words, a comma- or line-separated list, phrases, or
+          full sentences. Front = a sentence in {knownLang}, back = its {targetLang}{' '}
+          translation.
+        </ThemedText>
+
+        <ThemedText type="small" themeColor={deckFull ? 'danger' : 'textSecondary'}>
+          {existingDeck
+            ? deckFull
+              ? `This deck is full (${MAX_CARDS_PER_DECK} cards max). Delete some cards to add more.`
+              : `${usedCount} of ${MAX_CARDS_PER_DECK} cards used — up to ${remaining} more.`
+            : `Up to ${MAX_CARDS_PER_DECK} cards per deck.`}
         </ThemedText>
       </ScrollView>
 
@@ -160,7 +176,7 @@ export default function GenerateScreen() {
         <AIButton
           title="Generate cards"
           loading={loading}
-          disabled={itemsText.trim().length === 0}
+          disabled={deckFull || inputText.trim().length === 0}
           style={styles.flex}
           onPress={handleGenerate}
         />

@@ -4,6 +4,7 @@
  */
 
 import { PROXY_URL } from './config';
+import { MAX_CARDS_PER_DECK } from './limits';
 
 export interface DraftCard {
   front: string;
@@ -13,17 +14,25 @@ export interface DraftCard {
 export interface GenerateOptions {
   knownLang: string;
   targetLang: string;
-  /** Words / phrases / sentences, one concept per entry. */
-  items: string[];
+  /**
+   * Freeform text describing what to study. May be a single word, several words
+   * separated by spaces/commas/new lines, or one or more phrases or full
+   * sentences. The model decides how to split it into cards.
+   */
+  input: string;
+  /** Upper bound on cards to generate. Clamped to [1, MAX_CARDS_PER_DECK]. */
+  max?: number;
 }
 
 export class GenerationError extends Error {}
 
 export async function generateCards(opts: GenerateOptions): Promise<DraftCard[]> {
-  const items = opts.items.map((i) => i.trim()).filter(Boolean);
-  if (items.length === 0) {
+  const input = opts.input.trim();
+  if (!input) {
     throw new GenerationError('Add at least one word or phrase to generate cards.');
   }
+
+  const max = Math.max(1, Math.min(opts.max ?? MAX_CARDS_PER_DECK, MAX_CARDS_PER_DECK));
 
   const url = `${PROXY_URL}/api/generate`;
 
@@ -35,7 +44,8 @@ export async function generateCards(opts: GenerateOptions): Promise<DraftCard[]>
       body: JSON.stringify({
         knownLang: opts.knownLang,
         targetLang: opts.targetLang,
-        items,
+        input,
+        max,
       }),
     });
   } catch {

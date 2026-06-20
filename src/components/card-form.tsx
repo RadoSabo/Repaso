@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 import { Button } from '@/components/button';
 import { TextField } from '@/components/text-field';
+import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 
 export function CardForm({
@@ -10,12 +11,14 @@ export function CardForm({
   submitLabel,
   frontLabel = 'Front',
   backLabel = 'Back',
+  notice,
   onSubmit,
 }: {
   initial: { front: string; back: string };
   submitLabel: string;
   frontLabel?: string;
   backLabel?: string;
+  notice?: string;
   onSubmit: (values: { front: string; back: string }) => void;
 }) {
   const [front, setFront] = useState(initial.front);
@@ -44,6 +47,11 @@ export function CardForm({
         disabled={!canSubmit}
         onPress={() => onSubmit({ front, back })}
       />
+      {notice ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {notice}
+        </ThemedText>
+      ) : null}
     </ScrollView>
   );
 }
