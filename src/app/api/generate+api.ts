@@ -4,15 +4,17 @@
  * The OpenAI key never leaves the server: it is read from `OPENAI_API_KEY` and
  * used here. The mobile app only ever talks to this route. Configure via env:
  *   OPENAI_API_KEY   (required)  secret key, server-side only
- *   OPENAI_MODEL     (optional)  defaults to "gpt-4o-mini"
+ *   OPENAI_MODEL     (optional)  defaults to "gpt-5.4-nano"
  *   APP_TOKEN        (optional)  shared bearer token the app must send
  *
  * Deploy with EAS Hosting (`npx expo export -p web` + `eas deploy`) so the
  * route runs server-side; in local dev it is served by the Expo dev server.
  */
 
+import { MAX_CARDS_PER_DECK } from '@/lib/limits';
+
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
-const MAX_ITEMS = 50;
+const MAX_INPUT_CHARS = 4000;
 
 // Best-effort in-memory rate limit (per server instance). Good enough for an
 // MVP; swap for a shared store (KV/Redis) when running multiple instances.
@@ -81,7 +83,7 @@ export async function POST(request: Request): Promise<Response> {
     return json({ error: 'Too many requests.' }, 429);
   }
 
-  let payload: { knownLang?: unknown; targetLang?: unknown; items?: unknown };
+  let payload: { knownLang?: unknown; targetLang?: unknown; input?: unknown; max?: unknown };
   try {
     payload = await request.json();
   } catch {
@@ -90,29 +92,36 @@ export async function POST(request: Request): Promise<Response> {
 
   const knownLang = typeof payload.knownLang === 'string' ? payload.knownLang.trim() : '';
   const targetLang = typeof payload.targetLang === 'string' ? payload.targetLang.trim() : '';
-  const items = Array.isArray(payload.items)
-    ? payload.items.map((i) => String(i).trim()).filter(Boolean).slice(0, MAX_ITEMS)
-    : [];
+  const input =
+    typeof payload.input === 'string' ? payload.input.trim().slice(0, MAX_INPUT_CHARS) : '';
+  const requestedMax = typeof payload.max === 'number' ? Math.floor(payload.max) : MAX_CARDS_PER_DECK;
+  const max = Math.max(1, Math.min(requestedMax, MAX_CARDS_PER_DECK));
 
   if (!knownLang || !targetLang) {
     return json({ error: 'knownLang and targetLang are required.' }, 400);
   }
-  if (items.length === 0) {
-    return json({ error: 'Provide at least one item.' }, 400);
+  if (!input) {
+    return json({ error: 'Provide something to generate from.' }, 400);
   }
 
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  const model = process.env.OPENAI_MODEL || 'gpt-5.4-nano';
 
   const system =
     `You are a language-learning assistant that creates flashcards. The learner ` +
-    `knows ${knownLang} and is learning ${targetLang}. For EACH input item, write ` +
-    `one short, natural sentence in ${knownLang} that uses the item in a clear, ` +
-    `everyday context (this is the card FRONT), and the faithful translation of ` +
-    `that sentence in ${targetLang} (this is the card BACK). If an item is already ` +
-    `a full sentence, use it as the basis directly. Return exactly one card per ` +
-    `item, in the same order. Keep sentences concise and learner-friendly.`;
+    `knows ${knownLang} and is learning ${targetLang}.\n\n` +
+    `The learner provides freeform input. It may be a single word, several words ` +
+    `separated by spaces, commas, or new lines, or one or more phrases, ` +
+    `collocations, or full sentences. Interpret it sensibly and split it into the ` +
+    `distinct vocabulary items, phrases, or sentences worth studying: treat a bare ` +
+    `list of words as one item each, and text that is already a sentence as a ` +
+    `single item.\n\n` +
+    `For each item, write the card FRONT as a short, natural ${knownLang} sentence ` +
+    `that uses the item in clear everyday context (or the sentence itself if the ` +
+    `item is already a sentence), and the card BACK as the faithful ${targetLang} ` +
+    `translation of that front sentence. Produce at most ${max} cards. Keep ` +
+    `sentences concise and learner-friendly.`;
 
-  const user = `Items:\n${items.map((i, n) => `${n + 1}. ${i}`).join('\n')}`;
+  const user = input;
 
   let openaiRes: Response;
   try {
@@ -161,7 +170,8 @@ export async function POST(request: Request): Promise<Response> {
 
   const cards = (parsed.cards ?? [])
     .map((c) => ({ front: String(c.front ?? '').trim(), back: String(c.back ?? '').trim() }))
-    .filter((c) => c.front && c.back);
+    .filter((c) => c.front && c.back)
+    .slice(0, max);
 
   return json({ cards });
 }
