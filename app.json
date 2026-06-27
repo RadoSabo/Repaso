@@ -36,7 +36,20 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Repaso uses the microphone so you can speak the words or topic you want to turn into flashcards."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Repaso reads text from photos you choose to turn into flashcards.",
+          "cameraPermission": "Repaso reads text from photos you take to turn into flashcards."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,

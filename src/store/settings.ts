@@ -7,6 +7,8 @@ import {
   type StateStorage,
 } from "zustand/middleware";
 
+import type { OutputStyle } from "@/lib/generation";
+
 // During web server rendering (Node) there is no `window`/localStorage, so
 // AsyncStorage's web build throws. Fall back to an in-memory store there;
 // native and the browser use real persistent storage.
@@ -31,11 +33,14 @@ export interface SettingsState {
   knownLang: string;
   /** Default language the learner is studying (back side of generated cards). */
   targetLang: string;
+  /** Whether generated cards are full sentences or bare vocabulary pairs. */
+  outputStyle: OutputStyle;
   themePreference: ThemePreference;
   /** True once the persisted state has finished loading from storage. */
   hydrated: boolean;
   setKnownLang: (v: string) => void;
   setTargetLang: (v: string) => void;
+  setOutputStyle: (v: OutputStyle) => void;
   setThemePreference: (v: ThemePreference) => void;
 }
 
@@ -44,19 +49,22 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       knownLang: "English",
       targetLang: "Spanish",
+      outputStyle: "sentences",
       themePreference: "system",
       hydrated: false,
       setKnownLang: (v) => set({ knownLang: v }),
       setTargetLang: (v) => set({ targetLang: v }),
+      setOutputStyle: (v) => set({ outputStyle: v }),
       setThemePreference: (v) => set({ themePreference: v }),
     }),
     {
       name: "repaso-settings",
       storage: createJSONStorage(() => persistentStorage),
       // Don't persist functions or the transient `hydrated` flag.
-      partialize: ({ knownLang, targetLang, themePreference }) => ({
+      partialize: ({ knownLang, targetLang, outputStyle, themePreference }) => ({
         knownLang,
         targetLang,
+        outputStyle,
         themePreference,
       }),
       onRehydrateStorage: () => () => {

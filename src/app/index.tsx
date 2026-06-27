@@ -1,4 +1,3 @@
-import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { Link, Stack, useRouter } from "expo-router";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,7 +7,8 @@ import { Button } from "@/components/button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
-import { deckSummariesQuery, type DeckSummary } from "@/db/queries";
+import { type DeckSummary } from "@/db/queries";
+import { useDeckSummaries } from "@/hooks/use-deck-summaries";
 import { useTheme } from "@/hooks/use-theme";
 import { dueLabel, isDue } from "@/lib/scheduling";
 
@@ -16,7 +16,7 @@ export default function DecksScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { data: decks } = useLiveQuery(deckSummariesQuery());
+  const decks = useDeckSummaries();
 
   return (
     <ThemedView style={styles.container}>

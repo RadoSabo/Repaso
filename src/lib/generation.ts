@@ -11,22 +11,38 @@ export interface DraftCard {
   back: string;
 }
 
+/**
+ * The shape of each generated card:
+ * - `sentences`: front/back are short natural sentences (default, best for retention).
+ * - `words`: front/back are vocabulary pairs, with articles/gender and a brief
+ *   sense hint folded into the strings to disambiguate (e.g. back = "die Katze").
+ */
+export type OutputStyle = 'sentences' | 'words';
+
 export interface GenerateOptions {
   knownLang: string;
   targetLang: string;
   /**
-   * Freeform text describing what to study. May be a single word, several words
-   * separated by spaces/commas/new lines, or one or more phrases or full
-   * sentences. The model decides how to split it into cards.
+   * Freeform text describing what to study. The model first decides intent:
+   * literal content (a word, list, or sentences to convert directly) vs. a topic
+   * to expand ("banking and mortgage vocabulary"), then splits it into cards.
    */
   input: string;
+  /** Whether to produce sentence cards or vocabulary-pair cards. */
+  outputStyle: OutputStyle;
   /** Upper bound on cards to generate. Clamped to [1, MAX_CARDS_PER_DECK]. */
   max?: number;
 }
 
+export interface GenerateResult {
+  cards: DraftCard[];
+  /** Input items the model skipped because the deck's card limit was reached. */
+  omitted: string[];
+}
+
 export class GenerationError extends Error {}
 
-export async function generateCards(opts: GenerateOptions): Promise<DraftCard[]> {
+export async function generateCards(opts: GenerateOptions): Promise<GenerateResult> {
   const input = opts.input.trim();
   if (!input) {
     throw new GenerationError('Add at least one word or phrase to generate cards.');
@@ -45,6 +61,7 @@ export async function generateCards(opts: GenerateOptions): Promise<DraftCard[]>
         knownLang: opts.knownLang,
         targetLang: opts.targetLang,
         input,
+        outputStyle: opts.outputStyle,
         max,
       }),
     });
@@ -58,13 +75,20 @@ export async function generateCards(opts: GenerateOptions): Promise<DraftCard[]>
     throw new GenerationError(detail || `Generation failed (HTTP ${res.status}).`);
   }
 
-  const data = (await res.json().catch(() => null)) as { cards?: DraftCard[] } | null;
-  const cards = data?.cards;
-  if (!Array.isArray(cards)) {
+  const data = (await res.json().catch(() => null)) as
+    | { cards?: DraftCard[]; omitted?: string[] }
+    | null;
+  const rawCards = data?.cards;
+  if (!Array.isArray(rawCards)) {
     throw new GenerationError('The server returned an unexpected response.');
   }
 
-  return cards
+  const cards = rawCards
     .map((c) => ({ front: String(c.front ?? '').trim(), back: String(c.back ?? '').trim() }))
     .filter((c) => c.front && c.back);
+  const omitted = Array.isArray(data?.omitted)
+    ? data.omitted.map((o) => String(o ?? '').trim()).filter(Boolean)
+    : [];
+
+  return { cards, omitted };
 }

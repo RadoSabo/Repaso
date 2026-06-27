@@ -22,7 +22,10 @@ export interface DeckSummary {
   cardCount: number;
 }
 
-export const deckSummariesQuery = () =>
+// Split into two queries instead of one join: drizzle's `useLiveQuery` only
+// watches a query's `from` table, so a joined decks+cards query never refreshes
+// when cards change. `useDeckSummaries` runs both live and merges them.
+export const decksListQuery = () =>
   db
     .select({
       id: decks.id,
@@ -33,12 +36,16 @@ export const deckSummariesQuery = () =>
       createdAt: decks.createdAt,
       reviewStage: decks.reviewStage,
       nextReviewAt: decks.nextReviewAt,
-      cardCount: sql<number>`count(${cards.id})`,
     })
     .from(decks)
-    .leftJoin(cards, eq(cards.deckId, decks.id))
-    .groupBy(decks.id)
     .orderBy(desc(decks.createdAt));
+
+/** Card count per deck. Lives on the `cards` table so it updates on card changes. */
+export const cardCountsQuery = () =>
+  db
+    .select({ deckId: cards.deckId, count: sql<number>`count(*)` })
+    .from(cards)
+    .groupBy(cards.deckId);
 
 export const cardsForDeckQuery = (deckId: number) =>
   db.select().from(cards).where(eq(cards.deckId, deckId)).orderBy(desc(cards.createdAt));
