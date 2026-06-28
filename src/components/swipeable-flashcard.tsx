@@ -32,8 +32,6 @@ const FLIP_PERSPECTIVE = 1000;
 const PEEK_SCALE = 0.96;
 /** Strongest the green/red answer tint gets at the commit threshold. */
 const TINT_MAX_OPACITY = 0.55;
-/** Shared hint shown on both faces. */
-const FLIP_HINT = 'Tap to flip';
 
 export interface SwipeableFlashcardHandle {
   /** Fling the card off-screen and resolve the answer (used by the answer buttons). */
@@ -154,10 +152,10 @@ export const SwipeableFlashcard = forwardRef<SwipeableFlashcardHandle, Swipeable
 
           <Animated.View style={[styles.fill, swipeStyle]}>
             <Animated.View style={[styles.face, frontStyle]}>
-              <Flashcard card={card} deck={deck} flipped={false} hint={FLIP_HINT} />
+              <Flashcard card={card} deck={deck} flipped={false} showHint />
             </Animated.View>
             <Animated.View style={[styles.face, backStyle]}>
-              <Flashcard card={card} deck={deck} flipped hint={FLIP_HINT} />
+              <Flashcard card={card} deck={deck} flipped showHint />
             </Animated.View>
 
             <Animated.View pointerEvents="none" style={[styles.tint, tintStyle]} />

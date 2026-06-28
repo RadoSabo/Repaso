@@ -37,6 +37,7 @@ export type IconName =
   | 'infinity'
   | 'confetti'
   | 'hand-tap'
+  | 'swipe'
   | 'refresh'
   | 'chat'
   | 'text'
@@ -76,6 +77,7 @@ const GLYPHS: Record<IconName, Glyph> = {
   infinity: { set: 'mci', name: 'infinity' },
   confetti: { set: 'mci', name: 'party-popper' },
   'hand-tap': { set: 'mci', name: 'gesture-tap' },
+  swipe: { set: 'mci', name: 'gesture-swipe-horizontal' },
   refresh: { set: 'ion', name: 'refresh' },
   chat: { set: 'ion', name: 'chatbubble' },
   text: { set: 'mci', name: 'format-letter-case' },

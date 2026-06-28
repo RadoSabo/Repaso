@@ -11,13 +11,13 @@ interface FlashcardProps {
   deck: Deck | undefined;
   /** Show the answer (back) side when true, otherwise the prompt (front) side. */
   flipped: boolean;
-  /** Optional helper line shown at the bottom of the card. */
-  hint?: string;
+  /** Show the tap/swipe affordance hint at the bottom of the card. */
+  showHint?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
 /** Presentational flash card face. Stateless — flip state lives with the caller. */
-export function Flashcard({ card, deck, flipped, hint, style }: FlashcardProps) {
+export function Flashcard({ card, deck, flipped, showHint, style }: FlashcardProps) {
   const theme = useTheme();
   const shadows = useShadows();
 
@@ -40,12 +40,20 @@ export function Flashcard({ card, deck, flipped, hint, style }: FlashcardProps) 
       <ThemedText type="display" style={styles.text}>
         {flipped ? card.back : card.front}
       </ThemedText>
-      {hint ? (
+      {showHint ? (
         <View style={styles.hint}>
-          <Icon name="hand-tap" size={16} color={theme.textFaint} />
-          <ThemedText type="sm" themeColor="textFaint" numberOfLines={1}>
-            {hint}
-          </ThemedText>
+          <View style={styles.hintRow}>
+            <Icon name="hand-tap" size={15} color={theme.textFaint} />
+            <ThemedText type="sm" themeColor="textFaint" numberOfLines={1}>
+              Tap to flip
+            </ThemedText>
+          </View>
+          <View style={styles.hintRow}>
+            <Icon name="swipe" size={15} color={theme.textFaint} />
+            <ThemedText type="sm" themeColor="textFaint" numberOfLines={1}>
+              Swipe to answer
+            </ThemedText>
+          </View>
         </View>
       ) : null}
     </View>
@@ -65,9 +73,13 @@ const styles = StyleSheet.create({
   text: { textAlign: 'center' },
   hint: {
     position: 'absolute',
-    bottom: Spacing.xxl,
+    bottom: Spacing.xl,
     left: Spacing.lg,
     right: Spacing.lg,
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  hintRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
