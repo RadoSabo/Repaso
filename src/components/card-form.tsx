@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { BottomBar } from '@/components/bottom-bar';
@@ -12,8 +13,8 @@ import { useTheme } from '@/hooks/use-theme';
 export function CardForm({
   initial,
   submitLabel,
-  frontLabel = 'Front',
-  backLabel = 'Back',
+  frontLabel,
+  backLabel,
   notice,
   tip,
   onSubmit,
@@ -28,6 +29,7 @@ export function CardForm({
   onSubmit: (values: { front: string; back: string }) => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [front, setFront] = useState(initial.front);
   const [back, setBack] = useState(initial.back);
   const canSubmit = front.trim().length > 0 && back.trim().length > 0;
@@ -38,18 +40,18 @@ export function CardForm({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <TextField
-          label={frontLabel}
+          label={frontLabel ?? t('cardForm.front')}
           value={front}
           onChangeText={setFront}
-          placeholder="Shown first"
+          placeholder={t('cardForm.shownFirst')}
           multiline
           autoFocus
         />
         <TextField
-          label={backLabel}
+          label={backLabel ?? t('cardForm.back')}
           value={back}
           onChangeText={setBack}
-          placeholder="The answer"
+          placeholder={t('cardForm.theAnswer')}
           multiline
         />
         {tip ? (

@@ -7,6 +7,7 @@
  * the normal card generation runs on it.
  */
 
+import i18n from '@/i18n';
 import { PROXY_URL } from './config';
 import { getAppUserId } from './revenuecat';
 
@@ -38,18 +39,18 @@ export async function extractTextFromImage({ base64, mimeType }: ExtractTextOpti
       body: JSON.stringify({ imageBase64: base64, mimeType: mimeType ?? 'image/jpeg', appUserId }),
     });
   } catch {
-    throw new ImageTextError('Could not reach the image server. Check your connection.');
+    throw new ImageTextError(i18n.t('extract.cannotReach'));
   }
 
   if (!res.ok) {
     if (res.status === 402) {
-      throw new ImageTextError('Repaso Pro is required for photo input.', { paywall: true });
+      throw new ImageTextError(i18n.t('extract.proRequired'), { paywall: true });
     }
     if (res.status === 429) {
-      throw new ImageTextError('Rate limited. Please wait a moment and try again.');
+      throw new ImageTextError(i18n.t('extract.rateLimited'));
     }
     const detail = await res.text().catch(() => '');
-    throw new ImageTextError(detail || `Reading the image failed (HTTP ${res.status}).`);
+    throw new ImageTextError(detail || i18n.t('extract.failed', { status: res.status }));
   }
 
   const data = (await res.json().catch(() => null)) as { text?: string } | null;

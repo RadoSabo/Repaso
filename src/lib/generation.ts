@@ -3,6 +3,7 @@
  * The OpenAI key lives only on the proxy; the app talks to the proxy.
  */
 
+import i18n from '@/i18n';
 import { PROXY_URL } from './config';
 import { getDeviceId } from './device-id';
 import { MAX_CARDS_PER_DECK } from './limits';
@@ -54,7 +55,7 @@ export class GenerationError extends Error {
 export async function generateCards(opts: GenerateOptions): Promise<GenerateResult> {
   const input = opts.input.trim();
   if (!input) {
-    throw new GenerationError('Add at least one word or phrase to generate cards.');
+    throw new GenerationError(i18n.t('gen.addWord'));
   }
 
   const max = Math.max(1, Math.min(opts.max ?? MAX_CARDS_PER_DECK, MAX_CARDS_PER_DECK));
@@ -85,18 +86,16 @@ export async function generateCards(opts: GenerateOptions): Promise<GenerateResu
       }),
     });
   } catch {
-    throw new GenerationError('Could not reach the generation server. Check your connection.');
+    throw new GenerationError(i18n.t('gen.cannotReach'));
   }
 
   if (!res.ok) {
     if (res.status === 402) {
-      throw new GenerationError('You’ve used all your free generations this month.', {
-        paywall: true,
-      });
+      throw new GenerationError(i18n.t('gen.usedAll'), { paywall: true });
     }
     const detail = await res.text().catch(() => '');
-    if (res.status === 429) throw new GenerationError('Rate limited. Please wait a moment and try again.');
-    throw new GenerationError(detail || `Generation failed (HTTP ${res.status}).`);
+    if (res.status === 429) throw new GenerationError(i18n.t('gen.rateLimited'));
+    throw new GenerationError(detail || i18n.t('gen.failed', { status: res.status }));
   }
 
   const data = (await res.json().catch(() => null)) as
@@ -104,7 +103,7 @@ export async function generateCards(opts: GenerateOptions): Promise<GenerateResu
     | null;
   const rawCards = data?.cards;
   if (!Array.isArray(rawCards)) {
-    throw new GenerationError('The server returned an unexpected response.');
+    throw new GenerationError(i18n.t('gen.unexpected'));
   }
 
   const cards = rawCards

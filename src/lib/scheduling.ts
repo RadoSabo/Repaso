@@ -8,6 +8,7 @@
  *
  * Pure and side-effect free so it can be unit tested in isolation.
  */
+import type { TFunction } from 'i18next';
 
 // Frequent early, then gradually spread out: tomorrow, +2, +5, +8, then easing
 // toward ~2 months. Edit this single list to change the review cadence.
@@ -65,13 +66,35 @@ export function isDue(
   return nextReviewAt <= Math.floor(now / 1000);
 }
 
-/** Human-friendly schedule label, e.g. "Due now", "Due in 1 day", "Due in 3 days". */
-export function dueLabel(nextReviewAt: number | null, now: number = Date.now()): string {
-  if (nextReviewAt == null) return 'Not reviewed yet';
+/** Schedule state in a form the UI can localize. */
+export type DueStatus =
+  | { kind: 'never' }
+  | { kind: 'due' }
+  | { kind: 'days'; days: number };
+
+/** Classifies a deck's due state without committing to any wording. */
+export function dueStatus(nextReviewAt: number | null, now: number = Date.now()): DueStatus {
+  if (nextReviewAt == null) return { kind: 'never' };
   const diff = nextReviewAt - Math.floor(now / 1000);
-  if (diff <= 0) return 'Due now';
-  const days = Math.ceil(diff / DAY);
-  return days === 1 ? 'Due in 1 day' : `Due in ${days} days`;
+  if (diff <= 0) return { kind: 'due' };
+  return { kind: 'days', days: Math.ceil(diff / DAY) };
+}
+
+/** Localized schedule label, e.g. "Due now", "Due in 1 day", "Due in 3 days". */
+export function dueLabel(
+  t: TFunction,
+  nextReviewAt: number | null,
+  now: number = Date.now(),
+): string {
+  const status = dueStatus(nextReviewAt, now);
+  switch (status.kind) {
+    // A never-reviewed deck is just as actionable as an overdue one.
+    case 'never':
+    case 'due':
+      return t('schedule.review');
+    case 'days':
+      return t('schedule.dueInDays', { count: status.days });
+  }
 }
 
 /** Fisher–Yates shuffle. Returns a new array; does not mutate the input. */

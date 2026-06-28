@@ -15,6 +15,7 @@ import {
 } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import i18n from '@/i18n';
 import { MAX_RECORDING_SECONDS } from '@/lib/limits';
 import { transcribeAudio, TranscriptionError } from '@/lib/transcribe';
 
@@ -59,13 +60,13 @@ export function useVoiceInput(
     try {
       await recorder.stop();
       const uri = recorder.uri;
-      if (!uri) throw new TranscriptionError('No audio was captured. Try again.');
+      if (!uri) throw new TranscriptionError(i18n.t('voice.noAudio'));
       const text = await transcribeAudio(uri);
       if (text) onText(text);
-      else setError('Could not make out any speech. Try again.');
+      else setError(i18n.t('voice.noSpeech'));
     } catch (e) {
       if (e instanceof TranscriptionError && e.paywall) onPaywall?.();
-      else setError(e instanceof TranscriptionError ? e.message : 'Transcription failed.');
+      else setError(e instanceof TranscriptionError ? e.message : i18n.t('voice.transcriptionFailed'));
     } finally {
       setPhase('idle');
       finalizing.current = false;
@@ -77,7 +78,7 @@ export function useVoiceInput(
     try {
       const { granted } = await requestRecordingPermissionsAsync();
       if (!granted) {
-        setError('Microphone access is off. Enable it in Settings to record.');
+        setError(i18n.t('voice.micOff'));
         return;
       }
       await recorder.prepareToRecordAsync();
@@ -86,7 +87,7 @@ export function useVoiceInput(
       // Auto-stop at the cap. A timer callback is an allowed place to set state.
       autoStopTimer.current = setTimeout(() => void finish(), MAX_RECORDING_SECONDS * 1000);
     } catch {
-      setError('Could not start recording.');
+      setError(i18n.t('voice.couldNotStart'));
       setPhase('idle');
     }
   }, [recorder, finish]);

@@ -30,6 +30,16 @@ Clean, senior-level code. No code smells, no hacks left behind.
 - **Use the design system.** `Spacing.*` from `@/constants/theme`, colors from `useTheme()`. No hard-coded px/hex outside the theme definition.
 - **Accessibility.** Interactive `Pressable`s get `accessibilityRole` and `accessibilityLabel`.
 
+# Internationalization (i18n)
+
+The app is fully translated with `i18next` / `react-i18next`. **No hard-coded user-facing strings** — every label, button, placeholder, alert, or notification a user can read goes through `t('some.key')` from `useTranslation()`, never a literal.
+
+- **Translate into every language.** When you add a key, add it to **all** locale files in `src/i18n/locales/`: `en`, `es`, `pt-BR`, `fr`, `de`, `it`, `ja`, `ko`, `zh-Hans`, `cs`. `en.json` is the source of truth; provide a real translation for each of the others (don't leave English placeholders). The set of languages lives in `src/i18n/languages.ts` (`SUPPORTED_LANGUAGES`) — if it grows, every key must cover the new locale too.
+- **Plurals.** Use i18next plural suffixes (`_one` / `_other`, plus `_few` / `_many` for languages that need them — e.g. `cs`, `es`, `fr`, `it`, `pt-BR`) and pass `{ count }`. Don't hand-roll `n === 1 ? … : …`.
+- **Interpolation, not concatenation.** Build dynamic text with `{{placeholders}}` inside one key, never by joining translated fragments.
+- **Keep keys grouped** under their existing namespace and remove keys your change orphaned across all locale files.
+- **Content vs. UI language.** Canonical deck/generation language names (e.g. `deckName: "German"`) are intentionally *not* localized — see `src/i18n/languages.ts`. Only translate UI chrome.
+
 # Verify
 
 Before claiming done, run `npx tsc --noEmit` and `npx expo lint` on changed files; both must be clean (ignore pre-existing errors in files you didn't touch).

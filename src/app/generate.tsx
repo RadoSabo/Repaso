@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 
@@ -25,19 +26,11 @@ import { useSettings } from '@/store/settings';
 
 type Draft = DraftCard & { id: number };
 
-const OUTPUT_SEGMENTS: readonly Segment<OutputStyle>[] = [
-  { value: 'sentences', label: 'Sentences', icon: 'chat' },
-  { value: 'words', label: 'Words', icon: 'text' },
-];
-
-// Each chip drops a complete, ready-to-run instruction into the field.
-const TOPIC_SUGGESTIONS: readonly { label: string; prompt: string }[] = [
-  { label: 'At the airport', prompt: 'Vocabulary you need at the airport' },
-  { label: 'Small talk', prompt: 'Useful small talk phrases' },
-  { label: 'Banking', prompt: 'Banking and money vocabulary' },
-  { label: 'Cooking', prompt: 'Cooking and kitchen vocabulary' },
-  { label: 'Body parts', prompt: 'Common parts of the body' },
-];
+/** A topic chip drops a complete, ready-to-run instruction into the field. */
+interface TopicSuggestion {
+  label: string;
+  prompt: string;
+}
 
 const KAV_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : undefined;
 
@@ -55,9 +48,16 @@ export default function GenerateScreen() {
   const deckFull = remaining <= 0;
 
   const router = useRouter();
+  const { t } = useTranslation();
   const settings = useSettings();
   const { isPro } = useEntitlement();
   const quota = useGenerationQuota(isPro);
+
+  const outputSegments: readonly Segment<OutputStyle>[] = [
+    { value: 'sentences', label: t('generate.styleSentences'), icon: 'chat' },
+    { value: 'words', label: t('generate.styleWords'), icon: 'text' },
+  ];
+  const topicSuggestions = t('generate.topics', { returnObjects: true }) as TopicSuggestion[];
 
   const [deckName, setDeckName] = useState('');
   const [knownLang, setKnownLang] = useState(existingDeck?.knownLang ?? settings.knownLang);
@@ -98,10 +98,10 @@ export default function GenerateScreen() {
       showProUpsell();
       return;
     }
-    Alert.alert('Add a photo', 'Read the text from a photo and turn it into cards.', [
-      { text: 'Take photo', onPress: image.fromCamera },
-      { text: 'Choose photo', onPress: image.fromLibrary },
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('generate.addPhotoTitle'), t('generate.addPhotoBody'), [
+      { text: t('generate.takePhoto'), onPress: image.fromCamera },
+      { text: t('generate.choosePhoto'), onPress: image.fromLibrary },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   }
 
@@ -123,7 +123,7 @@ export default function GenerateScreen() {
         max: remaining,
       });
       if (cards.length === 0) {
-        setError('No cards were generated. Try different input.');
+        setError(t('generate.noCardsGenerated'));
       } else {
         setOmitted(omitted);
         // The index is a permanent id: the list only ever shrinks (delete), so
@@ -136,7 +136,7 @@ export default function GenerateScreen() {
         router.push('/paywall');
         return;
       }
-      setError(e instanceof GenerationError ? e.message : 'Something went wrong.');
+      setError(e instanceof GenerationError ? e.message : t('common.somethingWrong'));
     } finally {
       setLoading(false);
     }
@@ -145,11 +145,12 @@ export default function GenerateScreen() {
   function handleSave() {
     const selected = (drafts ?? []).filter((d) => d.front.trim() && d.back.trim());
     if (selected.length === 0) {
-      Alert.alert('Nothing to save', 'Keep at least one card.');
+      Alert.alert(t('generate.nothingToSaveTitle'), t('generate.nothingToSaveBody'));
       return;
     }
     const targetDeck =
-      existingDeck ?? createDeck({ name: deckName.trim() || 'Generated deck', knownLang, targetLang });
+      existingDeck ??
+      createDeck({ name: deckName.trim() || t('generate.generatedDeck'), knownLang, targetLang });
     createCards(targetDeck.id, selected, 'generated');
     router.replace(`/deck/${targetDeck.id}`);
   }
@@ -161,16 +162,16 @@ export default function GenerateScreen() {
         <KeyboardAvoidingView style={styles.flex} behavior={KAV_BEHAVIOR}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <ThemedText type="sm" themeColor="textSecondary">
-            Review and edit each card before saving. Remove any you don’t want.
+            {t('generate.reviewIntro')}
           </ThemedText>
           {omitted.length > 0 ? (
             <ThemedText type="sm" themeColor="accentOn">
-              Reached the {MAX_CARDS_PER_DECK}-card limit — not added: {omitted.join(', ')}
+              {t('generate.limitReached', { max: MAX_CARDS_PER_DECK, items: omitted.join(', ') })}
             </ThemedText>
           ) : null}
           {drafts.length === 0 ? (
             <ThemedText style={styles.emptyDrafts} themeColor="textMuted">
-              No cards left. Go back to generate again.
+              {t('generate.noCardsLeft')}
             </ThemedText>
           ) : (
             drafts.map((d, i) => (
@@ -181,13 +182,13 @@ export default function GenerateScreen() {
                 <Card padding="md" style={styles.draft}>
                   <View style={styles.draftHeader}>
                     <ThemedText type="h3" themeColor="textSecondary">
-                      Card {i + 1}
+                      {t('generate.cardN', { n: i + 1 })}
                     </ThemedText>
                     <IconButton
                       icon="trash"
                       variant="danger"
                       size="sm"
-                      label={`Remove card ${i + 1}`}
+                      label={t('generate.removeCardN', { n: i + 1 })}
                       onPress={() => setDrafts((ds) => ds!.filter((x) => x.id !== d.id))}
                     />
                   </View>
@@ -216,9 +217,9 @@ export default function GenerateScreen() {
         </ScrollView>
         <BottomBar>
           <View style={styles.row}>
-            <Button title="Back" variant="secondary" size="lg" onPress={() => setDrafts(null)} />
+            <Button title={t('common.back')} variant="secondary" size="lg" onPress={() => setDrafts(null)} />
             <Button
-              title={`Save ${drafts.length} cards`}
+              title={t('generate.saveCards', { count: drafts.length })}
               size="lg"
               leadingIcon="check"
               style={styles.flex}
@@ -232,7 +233,7 @@ export default function GenerateScreen() {
     );
   }
 
-  const styleNoun = settings.outputStyle === 'words' ? 'word' : 'sentence';
+  const styleNoun = t(settings.outputStyle === 'words' ? 'generate.nounWord' : 'generate.nounSentence');
 
   // --- Input stage ---
   return (
@@ -240,35 +241,35 @@ export default function GenerateScreen() {
       <KeyboardAvoidingView style={styles.flex} behavior={KAV_BEHAVIOR}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <SegmentedControl
-          segments={OUTPUT_SEGMENTS}
+          segments={outputSegments}
           value={settings.outputStyle}
           onChange={settings.setOutputStyle}
         />
 
         {existingDeck ? (
           <ThemedText type="sm" themeColor="textSecondary">
-            Adding to “{existingDeck.name}”.
+            {t('generate.addingTo', { name: existingDeck.name })}
           </ThemedText>
         ) : (
           <>
             <TextField
-              label="New deck name"
+              label={t('generate.newDeckName')}
               value={deckName}
               onChangeText={setDeckName}
-              placeholder="Generated deck"
+              placeholder={t('generate.generatedDeck')}
             />
             <View style={styles.row}>
-              <TextField containerStyle={styles.flex} label="I know" value={knownLang} onChangeText={setKnownLang} />
-              <TextField containerStyle={styles.flex} label="I'm learning" value={targetLang} onChangeText={setTargetLang} />
+              <TextField containerStyle={styles.flex} label={t('common.iKnow')} value={knownLang} onChangeText={setKnownLang} />
+              <TextField containerStyle={styles.flex} label={t('common.imLearning')} value={targetLang} onChangeText={setTargetLang} />
             </View>
           </>
         )}
 
         <TextField
-          label="Words, phrases, sentences, or a topic"
+          label={t('generate.inputLabel')}
           value={inputText}
           onChangeText={setInputText}
-          placeholder={'house, to run, good morning\nOr a topic: banking and mortgage vocabulary'}
+          placeholder={t('generate.inputPlaceholder')}
           multiline
           editable={!deckFull}
           style={styles.itemsInput}
@@ -276,9 +277,9 @@ export default function GenerateScreen() {
 
         {inputText.trim() === '' ? (
           <View style={styles.chips}>
-            {TOPIC_SUGGESTIONS.map((t) => (
-              <Chip key={t.label} icon="sparkle" onPress={() => setInputText(t.prompt)}>
-                {t.label}
+            {topicSuggestions.map((topic) => (
+              <Chip key={topic.label} icon="sparkle" onPress={() => setInputText(topic.prompt)}>
+                {topic.label}
               </Chip>
             ))}
           </View>
@@ -291,10 +292,10 @@ export default function GenerateScreen() {
               voice.phase === 'recording'
                 ? `${formatSeconds(voice.seconds)} / ${formatSeconds(MAX_RECORDING_SECONDS)}`
                 : voice.phase === 'transcribing'
-                  ? 'Transcribing…'
-                  : 'Record'
+                  ? t('generate.transcribing')
+                  : t('generate.record')
             }
-            accessibilityLabel="Record audio to generate cards from"
+            accessibilityLabel={t('generate.recordA11y')}
             active={voice.phase === 'recording'}
             busy={voice.phase === 'transcribing'}
             locked={!isPro}
@@ -303,8 +304,8 @@ export default function GenerateScreen() {
           />
           <InputMethodButton
             icon="camera"
-            label={image.loading ? 'Reading…' : 'Photo'}
-            accessibilityLabel="Add a photo to generate cards from"
+            label={image.loading ? t('generate.reading') : t('generate.photo')}
+            accessibilityLabel={t('generate.photoA11y')}
             busy={image.loading}
             locked={!isPro}
             disabled={deckFull || voice.phase !== 'idle'}
@@ -325,30 +326,27 @@ export default function GenerateScreen() {
         ) : null}
 
         <ThemedText type="sm" themeColor="textMuted">
-          Type or speak words to translate, or describe what you want to learn (e.g. banking and
-          mortgage vocabulary). Each card is a {knownLang} {styleNoun} with its {targetLang}{' '}
-          translation.
+          {t('generate.explainer', { known: knownLang, noun: styleNoun, target: targetLang })}
         </ThemedText>
 
         <ThemedText type="sm" themeColor={deckFull ? 'danger' : 'textMuted'}>
           {existingDeck
             ? deckFull
-              ? `This deck is full (${MAX_CARDS_PER_DECK} cards max). Delete some cards to add more.`
-              : `${usedCount} of ${MAX_CARDS_PER_DECK} cards used — up to ${remaining} more.`
-            : `Up to ${MAX_CARDS_PER_DECK} cards per deck.`}
+              ? t('generate.deckFull', { max: MAX_CARDS_PER_DECK })
+              : t('generate.cardsUsed', { used: usedCount, max: MAX_CARDS_PER_DECK, remaining })
+            : t('generate.cardsPerDeck', { max: MAX_CARDS_PER_DECK })}
         </ThemedText>
 
         {!isPro ? (
           <ThemedText type="sm" themeColor={quota.remaining === 0 ? 'danger' : 'textMuted'}>
-            {quota.remaining} free {quota.remaining === 1 ? 'generation' : 'generations'} left this
-            month — unlimited with Repaso Pro.
+            {t('generate.freeLeft', { count: quota.remaining })}
           </ThemedText>
         ) : null}
       </ScrollView>
 
       <BottomBar>
         <Button
-          title="Generate cards"
+          title={t('generate.generateCards')}
           variant="spark"
           size="lg"
           block

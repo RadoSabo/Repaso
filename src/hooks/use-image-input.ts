@@ -7,6 +7,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useState } from 'react';
 
+import i18n from '@/i18n';
 import { extractTextFromImage, ImageTextError } from '@/lib/extract-text';
 
 /** Compress a little to keep the upload small without hurting text legibility. */
@@ -32,17 +33,17 @@ export function useImageInput(
       if (result.canceled) return;
       const base64 = result.assets[0]?.base64;
       if (!base64) {
-        setError('Could not read that image.');
+        setError(i18n.t('image.cannotRead'));
         return;
       }
       setLoading(true);
       try {
         const text = await extractTextFromImage({ base64, mimeType: result.assets[0]?.mimeType });
         if (text) onText(text);
-        else setError('No readable text found in that image.');
+        else setError(i18n.t('image.noText'));
       } catch (e) {
         if (e instanceof ImageTextError && e.paywall) onPaywall?.();
-        else setError(e instanceof ImageTextError ? e.message : 'Reading the image failed.');
+        else setError(e instanceof ImageTextError ? e.message : i18n.t('image.readingFailed'));
       } finally {
         setLoading(false);
       }
@@ -54,7 +55,7 @@ export function useImageInput(
     setError(null);
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      setError('Camera access is off. Enable it in Settings to take a photo.');
+      setError(i18n.t('image.cameraOff'));
       return;
     }
     await handleResult(
@@ -66,7 +67,7 @@ export function useImageInput(
     setError(null);
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      setError('Photo access is off. Enable it in Settings to choose a photo.');
+      setError(i18n.t('image.photoOff'));
       return;
     }
     await handleResult(

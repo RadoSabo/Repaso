@@ -9,6 +9,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 import { createCards, createDeck, getAllDecksWithCards } from '@/db/queries';
+import i18n from '@/i18n';
 import { MAX_CARDS_PER_DECK } from './limits';
 
 /** Bump if the on-disk shape changes; import rejects unknown future versions. */
@@ -48,10 +49,10 @@ export async function exportDecks(): Promise<void> {
   };
 
   if (payload.decks.length === 0) {
-    throw new DeckTransferError('You have no decks to export yet.');
+    throw new DeckTransferError(i18n.t('transfer.noDecks'));
   }
   if (!(await Sharing.isAvailableAsync())) {
-    throw new DeckTransferError('Sharing is not available on this device.');
+    throw new DeckTransferError(i18n.t('transfer.sharingUnavailable'));
   }
 
   const file = new File(Paths.cache, `repaso-decks-${Date.now()}.json`);
@@ -59,7 +60,7 @@ export async function exportDecks(): Promise<void> {
   file.write(JSON.stringify(payload, null, 2));
   await Sharing.shareAsync(file.uri, {
     mimeType: 'application/json',
-    dialogTitle: 'Export Repaso decks',
+    dialogTitle: i18n.t('transfer.exportDialogTitle'),
   });
 }
 
@@ -75,26 +76,26 @@ export async function importDecks(): Promise<number> {
   if (result.canceled) return 0;
 
   const uri = result.assets[0]?.uri;
-  if (!uri) throw new DeckTransferError('Could not read the selected file.');
+  if (!uri) throw new DeckTransferError(i18n.t('transfer.cannotRead'));
 
   let parsed: TransferFile;
   try {
     parsed = JSON.parse(await new File(uri).text());
   } catch {
-    throw new DeckTransferError('That file is not a valid Repaso export.');
+    throw new DeckTransferError(i18n.t('transfer.invalidFile'));
   }
   if (!parsed || !Array.isArray(parsed.decks)) {
-    throw new DeckTransferError('That file is not a valid Repaso export.');
+    throw new DeckTransferError(i18n.t('transfer.invalidFile'));
   }
   if (parsed.version > TRANSFER_VERSION) {
-    throw new DeckTransferError('This file was made by a newer version of Repaso.');
+    throw new DeckTransferError(i18n.t('transfer.newerVersion'));
   }
 
   let imported = 0;
   for (const d of parsed.decks) {
     if (!d || typeof d.name !== 'string') continue;
     const deck = createDeck({
-      name: d.name.trim() || 'Imported deck',
+      name: d.name.trim() || i18n.t('transfer.importedDeckName'),
       description: typeof d.description === 'string' ? d.description : undefined,
       knownLang: typeof d.knownLang === 'string' && d.knownLang ? d.knownLang : 'English',
       targetLang: typeof d.targetLang === 'string' && d.targetLang ? d.targetLang : 'Spanish',

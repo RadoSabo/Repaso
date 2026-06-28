@@ -1,6 +1,6 @@
 import {
   advanceSchedule,
-  dueLabel,
+  dueStatus,
   insertAtRandom,
   intervalDaysForStage,
   isDue,
@@ -89,12 +89,12 @@ describe('isDue', () => {
   });
 });
 
-describe('dueLabel', () => {
-  it('describes the schedule in plain language', () => {
-    expect(dueLabel(null, NOW)).toBe('Not reviewed yet');
-    expect(dueLabel(nowSec - 10, NOW)).toBe('Due now');
-    expect(dueLabel(nowSec + DAY, NOW)).toBe('Due in 1 day');
-    expect(dueLabel(nowSec + 3 * DAY, NOW)).toBe('Due in 3 days');
+describe('dueStatus', () => {
+  it('classifies the schedule state', () => {
+    expect(dueStatus(null, NOW)).toEqual({ kind: 'never' });
+    expect(dueStatus(nowSec - 10, NOW)).toEqual({ kind: 'due' });
+    expect(dueStatus(nowSec + DAY, NOW)).toEqual({ kind: 'days', days: 1 });
+    expect(dueStatus(nowSec + 3 * DAY, NOW)).toEqual({ kind: 'days', days: 3 });
   });
 });
 

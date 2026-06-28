@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 
@@ -19,6 +20,7 @@ export default function DeckDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const deckId = Number(id);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { data: deckRows, updatedAt } = useLiveQuery(deckByIdQuery(deckId), [deckId]);
   const { data: cards } = useLiveQuery(cardsForDeckQuery(deckId), [deckId]);
@@ -33,10 +35,10 @@ export default function DeckDetailScreen() {
   if (!deck) {
     return (
       <ThemedView style={styles.container}>
-        <Stack.Screen options={{ title: 'Deck' }} />
+        <Stack.Screen options={{ title: t('nav.deck') }} />
         {loading ? null : (
           <View style={styles.empty}>
-            <ThemedText themeColor="textSecondary">Deck not found.</ThemedText>
+            <ThemedText themeColor="textSecondary">{t('deckDetail.deckNotFound')}</ThemedText>
           </View>
         )}
       </ThemedView>
@@ -51,7 +53,7 @@ export default function DeckDetailScreen() {
           headerRight: () => (
             <Pressable hitSlop={12} onPress={() => router.push(`/deck/${deckId}/edit`)}>
               <ThemedText type="smBold" themeColor="brandContrast">
-                Edit
+                {t('common.edit')}
               </ThemedText>
             </Pressable>
           ),
@@ -64,10 +66,10 @@ export default function DeckDetailScreen() {
         </ThemedText>
         <View style={styles.summaryMeta}>
           <ThemedText type="smBold" themeColor={due ? 'brandContrast' : 'textMuted'}>
-            {cardCount > 0 ? dueLabel(deck.nextReviewAt) : 'No cards yet'}
+            {cardCount > 0 ? dueLabel(t, deck.nextReviewAt) : t('deckDetail.noCardsYet')}
           </ThemedText>
           <ThemedText type="sm" themeColor="textMuted">
-            · {cardCount} card{cardCount === 1 ? '' : 's'}
+            · {t('home.cardCount', { count: cardCount })}
           </ThemedText>
         </View>
       </View>
@@ -82,7 +84,7 @@ export default function DeckDetailScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <ThemedText themeColor="textMuted" style={styles.emptyText}>
-              No cards yet. Add one manually or generate a set with AI.
+              {t('deckDetail.emptyCards')}
             </ThemedText>
           </View>
         }
@@ -105,14 +107,14 @@ export default function DeckDetailScreen() {
       <BottomBar>
         <View style={styles.actionRow}>
           <Button
-            title="Add card"
+            title={t('deckDetail.addCard')}
             variant="secondary"
             leadingIcon="plus"
             style={styles.flex}
             onPress={() => router.push(`/card/new?deckId=${deckId}`)}
           />
           <Button
-            title="Generate"
+            title={t('deckDetail.generate')}
             variant="spark"
             leadingIcon="sparkle"
             style={styles.flex}
@@ -120,7 +122,14 @@ export default function DeckDetailScreen() {
           />
         </View>
         <Button
-          title={cardCount === 0 ? 'Add cards to review' : due ? 'Review now' : 'Review'}
+          title={
+            cardCount === 0
+              ? t('deckDetail.addCardsToReview')
+              : due
+                ? t('deckDetail.reviewNow')
+                : t('deckDetail.review')
+          }
+          variant="success"
           size="lg"
           block
           leadingIcon="play"
@@ -132,7 +141,7 @@ export default function DeckDetailScreen() {
           style={styles.deleteBtn}
           hitSlop={8}>
           <ThemedText type="sm" themeColor="danger">
-            Delete deck
+            {t('deckDetail.deleteDeck')}
           </ThemedText>
         </Pressable>
       </BottomBar>

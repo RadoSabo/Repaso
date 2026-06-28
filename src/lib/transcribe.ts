@@ -13,6 +13,7 @@
 
 import { File } from 'expo-file-system';
 
+import i18n from '@/i18n';
 import { PROXY_URL } from './config';
 import { getAppUserId } from './revenuecat';
 
@@ -35,7 +36,7 @@ export async function transcribeAudio(uri: string): Promise<string> {
     audioBase64 = await new File(uri).base64();
   } catch (e) {
     console.warn('[transcribe] could not read recording', { uri, error: e });
-    throw new TranscriptionError('Could not read the recording. Try again.');
+    throw new TranscriptionError(i18n.t('transcribe.cannotRead'));
   }
 
   const appUserId = await getAppUserId().catch(() => '');
@@ -49,18 +50,18 @@ export async function transcribeAudio(uri: string): Promise<string> {
     });
   } catch (e) {
     console.warn('[transcribe] upload failed', { uri, error: e });
-    throw new TranscriptionError('Could not reach the transcription server. Check your connection.');
+    throw new TranscriptionError(i18n.t('transcribe.cannotReach'));
   }
 
   if (!res.ok) {
     if (res.status === 402) {
-      throw new TranscriptionError('Repaso Pro is required for voice input.', { paywall: true });
+      throw new TranscriptionError(i18n.t('transcribe.proRequired'), { paywall: true });
     }
     if (res.status === 429) {
-      throw new TranscriptionError('Rate limited. Please wait a moment and try again.');
+      throw new TranscriptionError(i18n.t('gen.rateLimited'));
     }
     const detail = await res.text().catch(() => '');
-    throw new TranscriptionError(detail || `Transcription failed (HTTP ${res.status}).`);
+    throw new TranscriptionError(detail || i18n.t('transcribe.failed', { status: res.status }));
   }
 
   const data = (await res.json().catch(() => null)) as { text?: string } | null;

@@ -1,5 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { BottomBar } from '@/components/bottom-bar';
@@ -24,6 +25,7 @@ export default function ReviewScreen() {
   const deckId = Number(id);
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
 
   const { deck, current, upcoming, knew, missed, total, answer } = useReviewSession(deckId);
@@ -34,32 +36,35 @@ export default function ReviewScreen() {
     const days = deck ? intervalDaysForStage(deck.reviewStage) : 0;
     return (
       <ThemedView style={styles.container}>
-        <Stack.Screen options={{ title: 'Review' }} />
+        <Stack.Screen options={{ title: t('nav.review') }} />
         <View style={styles.center}>
           <View style={[styles.doneTile, { backgroundColor: theme.successSoft }]}>
             <Icon name="confetti" size={58} color={theme.successOn} />
           </View>
-          <ThemedText type="h1">Nice work!</ThemedText>
+          <ThemedText type="h1">{t('review.niceWork')}</ThemedText>
           {total > 0 ? (
             <>
               <ThemedText type="bodyLg" themeColor="textSecondary" style={styles.centerText}>
-                You reviewed {total} card{total === 1 ? '' : 's'}
-                {deck ? ` from ${deck.name}` : ''}.
+                {deck
+                  ? t('review.reviewedFromDeck', { count: total, deck: deck.name })
+                  : t('review.reviewedCards', { count: total })}
               </ThemedText>
               <ThemedText type="body" themeColor="textMuted" style={styles.centerText}>
-                You knew {knew}
-                {missed > 0 ? ` · ${missed} repeat${missed === 1 ? '' : 's'}` : ''} · next reminder in{' '}
-                {days} day{days === 1 ? '' : 's'} 🔁
+                {t(missed > 0 ? 'review.summaryWithRepeats' : 'review.summary', {
+                  knew,
+                  repeats: t('review.repeats', { count: missed }),
+                  nextReminder: t('review.nextReminder', { count: days }),
+                })}
               </ThemedText>
             </>
           ) : (
             <ThemedText themeColor="textMuted" style={styles.centerText}>
-              This deck has no cards yet.
+              {t('review.noCards')}
             </ThemedText>
           )}
         </View>
         <BottomBar>
-          <Button title="Done" size="lg" block leadingIcon="check" onPress={() => router.back()} />
+          <Button title={t('common.done')} size="lg" block leadingIcon="check" onPress={() => router.back()} />
         </BottomBar>
       </ThemedView>
     );
@@ -69,7 +74,7 @@ export default function ReviewScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Review',
+          title: t('nav.review'),
           headerRight: () => (
             <ThemedText type="mono" themeColor="textMuted">
               {knew}/{total}
@@ -98,11 +103,11 @@ export default function ReviewScreen() {
 
       <BottomBar>
         <ThemedText type="smBold" themeColor="textMuted" style={styles.prompt}>
-          How well did you know it?
+          {t('review.progressPrompt')}
         </ThemedText>
         <View style={styles.answers}>
           <AnswerButton
-            label="Study again"
+            label={t('review.studyAgain')}
             icon="refresh"
             bg={theme.dangerSoft}
             fg={theme.dangerOn}
@@ -110,7 +115,7 @@ export default function ReviewScreen() {
             onPress={() => cardRef.current?.fling(false)}
           />
           <AnswerButton
-            label="Got it"
+            label={t('review.gotIt')}
             icon="check"
             bg={theme.successSoft}
             fg={theme.successOn}
@@ -150,7 +155,7 @@ function AnswerButton({
       <View style={[styles.answerChip, { backgroundColor: chip }]}>
         <Icon name={icon} size={17} color="#fff" />
       </View>
-      <ThemedText type="smBold" style={{ color: fg, fontSize: 15 }}>
+      <ThemedText type="smBold" numberOfLines={2} style={[styles.answerLabel, { color: fg }]}>
         {label}
       </ThemedText>
     </Pressable>
@@ -181,8 +186,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.sm + 1,
     minHeight: 56,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     borderRadius: Radius.lg,
   },
+  answerLabel: { flexShrink: 1, fontSize: 15 },
   answerChip: {
     width: 30,
     height: 30,

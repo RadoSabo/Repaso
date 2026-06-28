@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { DeckForm } from '@/components/deck-form';
 import { ThemedText } from '@/components/themed-text';
@@ -8,12 +9,13 @@ import { countCardsInDeck, getDeck, updateDeck } from '@/db/queries';
 export default function EditDeckScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const deck = getDeck(Number(id));
 
   if (!deck) {
     return (
       <ThemedView style={{ flex: 1, padding: 24 }}>
-        <ThemedText>Deck not found.</ThemedText>
+        <ThemedText>{t('deckDetail.deckNotFound')}</ThemedText>
       </ThemedView>
     );
   }
@@ -23,7 +25,7 @@ export default function EditDeckScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <DeckForm
-        submitLabel="Save changes"
+        submitLabel={t('deckForm.saveChanges')}
         lockLanguages={hasCards}
         initial={{
           name: deck.name,

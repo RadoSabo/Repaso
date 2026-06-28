@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -36,6 +37,7 @@ interface SwipeableCardRowProps {
  */
 export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRowProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const tx = useSharedValue(0);
 
   const pan = Gesture.Pan()
@@ -64,14 +66,14 @@ export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRo
         style={[styles.bg, styles.bgEdit, { backgroundColor: theme.brandSoft }, editStyle]}>
         <Icon name="pencil" size={20} color={theme.brandContrast} />
         <ThemedText type="xs" style={{ color: theme.brandContrast }}>
-          Edit
+          {t('common.edit')}
         </ThemedText>
       </Animated.View>
       <Animated.View
         style={[styles.bg, styles.bgDelete, { backgroundColor: theme.dangerSoft }, deleteStyle]}>
         <Icon name="trash" size={20} color={theme.dangerOn} />
         <ThemedText type="xs" style={{ color: theme.dangerOn }}>
-          Delete
+          {t('common.delete')}
         </ThemedText>
       </Animated.View>
 

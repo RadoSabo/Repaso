@@ -6,6 +6,8 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import i18n from '@/i18n';
+
 const ANDROID_CHANNEL = 'reviews';
 
 // Show reminders as banners even when the app is foregrounded.
@@ -21,7 +23,7 @@ Notifications.setNotificationHandler({
 async function ensureAndroidChannel() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL, {
-      name: 'Review reminders',
+      name: i18n.t('notifications.channelName'),
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
@@ -51,8 +53,8 @@ export async function scheduleDeckReminder(
 
     return await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Time to review 📚',
-        body: `Review “${deckName}” to keep it fresh.`,
+        title: i18n.t('notifications.reminderTitle'),
+        body: i18n.t('notifications.reminderBody', { deck: deckName }),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,

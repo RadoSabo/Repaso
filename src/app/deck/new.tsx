@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { DeckForm } from "@/components/deck-form";
 import { ThemedView } from "@/components/themed-view";
@@ -8,13 +9,14 @@ import { useSettings } from "@/store/settings";
 
 export default function NewDeckScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { knownLang, targetLang } = useSettings();
 
   return (
     <ThemedView style={{ flex: 1 }}>
       <DeckForm
-        submitLabel="Create deck"
-        notice={`Each deck holds up to ${MAX_CARDS_PER_DECK} cards.`}
+        submitLabel={t("deckForm.createDeck")}
+        notice={t("deckForm.notice", { max: MAX_CARDS_PER_DECK })}
         initial={{ name: "", description: "", knownLang, targetLang }}
         onSubmit={(v) => {
           const deck = createDeck(v);

@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 
 import { deleteCard, deleteDeck, getDeck } from '@/db/queries';
+import i18n from '@/i18n';
 import { cancelReminder } from '@/lib/notifications';
 
 /**
@@ -10,10 +11,10 @@ import { cancelReminder } from '@/lib/notifications';
 
 /** Confirm and delete a deck (and its scheduled reminder + cards). */
 export function confirmDeleteDeck(deckId: number, deckName: string, onDeleted?: () => void) {
-  Alert.alert('Delete deck?', `"${deckName}" and all its cards will be removed.`, [
-    { text: 'Cancel', style: 'cancel' },
+  Alert.alert(i18n.t('confirm.deleteDeckTitle'), i18n.t('confirm.deleteDeckBody', { name: deckName }), [
+    { text: i18n.t('common.cancel'), style: 'cancel' },
     {
-      text: 'Delete',
+      text: i18n.t('common.delete'),
       style: 'destructive',
       onPress: () => {
         cancelReminder(getDeck(deckId)?.notificationId);
@@ -26,10 +27,10 @@ export function confirmDeleteDeck(deckId: number, deckName: string, onDeleted?: 
 
 /** Confirm and delete a single card. */
 export function confirmDeleteCard(cardId: number, front: string, onDeleted?: () => void) {
-  Alert.alert('Delete card?', `"${front}" will be removed from the deck.`, [
-    { text: 'Cancel', style: 'cancel' },
+  Alert.alert(i18n.t('confirm.deleteCardTitle'), i18n.t('confirm.deleteCardBody', { front }), [
+    { text: i18n.t('common.cancel'), style: 'cancel' },
     {
-      text: 'Delete',
+      text: i18n.t('common.delete'),
       style: 'destructive',
       onPress: () => {
         deleteCard(cardId);

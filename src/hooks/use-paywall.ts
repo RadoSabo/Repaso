@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PurchasesPackage } from 'react-native-purchases';
 
+import i18n from '@/i18n';
 import { getProOffering, purchasePackage, restorePurchases } from '@/lib/revenuecat';
 
 export interface Paywall {
@@ -34,7 +35,7 @@ export function usePaywall(): Paywall {
         const offering = await getProOffering();
         if (active) setPackages(offering?.availablePackages ?? []);
       } catch {
-        if (active) setError('Could not load subscription options. Please try again.');
+        if (active) setError(i18n.t('paywall.loadFailed'));
       } finally {
         if (active) setLoading(false);
       }
@@ -52,7 +53,7 @@ export function usePaywall(): Paywall {
     } catch (e) {
       // A user-cancelled purchase is not an error to surface.
       if (!(e as { userCancelled?: boolean })?.userCancelled) {
-        setError('Purchase did not complete. Please try again.');
+        setError(i18n.t('paywall.purchaseFailed'));
       }
       return false;
     } finally {
@@ -66,7 +67,7 @@ export function usePaywall(): Paywall {
     try {
       return await restorePurchases();
     } catch {
-      setError('Could not restore purchases.');
+      setError(i18n.t('paywall.restoreFailed'));
       return false;
     } finally {
       setBusy(false);

@@ -1,6 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
+import { type TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { PurchasesPackage } from 'react-native-purchases';
@@ -23,33 +25,20 @@ interface Benefit {
   body: string;
 }
 
-const BENEFITS: readonly Benefit[] = [
-  {
-    icon: 'sparkle',
-    title: 'Generate from any topic',
-    body: 'Type a word list or describe a subject — get a full deck in seconds.',
-  },
-  {
-    icon: 'camera',
-    title: 'Snap a photo or speak it',
-    body: 'Turn a textbook page or your voice straight into flashcards.',
-  },
-  {
-    icon: 'infinity',
-    title: 'Unlimited generations',
-    body: 'No daily caps. Build as many decks as you need.',
-  },
-];
+const BENEFIT_ICONS: readonly IconName[] = ['sparkle', 'camera', 'infinity'];
 
 const HERO_TILE = 74;
 
 /** Human label + price suffix for a package, derived from its type. */
-function describePackage(pkg: PurchasesPackage): { title: string; suffix: string; badge?: string } {
+function describePackage(
+  pkg: PurchasesPackage,
+  t: TFunction,
+): { title: string; suffix: string; badge?: string } {
   switch (pkg.packageType) {
     case 'ANNUAL':
-      return { title: 'Annual', suffix: '/year', badge: '2 months free' };
+      return { title: t('paywall.annual'), suffix: t('paywall.perYear'), badge: t('paywall.monthsFree') };
     case 'MONTHLY':
-      return { title: 'Monthly', suffix: '/month' };
+      return { title: t('paywall.monthly'), suffix: t('paywall.perMonth') };
     default:
       return { title: pkg.product.title, suffix: '' };
   }
@@ -59,8 +48,15 @@ export default function PaywallScreen() {
   const theme = useTheme();
   const shadows = useShadows();
   const router = useRouter();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { packages, loading, busy, error, buy, restore } = usePaywall();
+
+  const benefits: readonly Benefit[] = BENEFIT_ICONS.map((icon, i) => ({
+    icon,
+    title: t(`paywall.benefit${i + 1}Title`),
+    body: t(`paywall.benefit${i + 1}Body`),
+  }));
 
   // Default to the annual package (best value) until the user picks one.
   const defaultPkg = packages.find((p) => p.packageType === 'ANNUAL') ?? packages[0] ?? null;
@@ -81,7 +77,7 @@ export default function PaywallScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={[styles.closeRow, { paddingTop: insets.top + Spacing.sm }]}>
-        <IconButton icon="x" variant="soft" label="Close" onPress={() => router.back()} />
+        <IconButton icon="x" variant="soft" label={t('paywall.close')} onPress={() => router.back()} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -93,19 +89,19 @@ export default function PaywallScreen() {
             style={[styles.heroTile, shadows.spark]}>
             <Icon name="sparkle" size={38} color="#fff" />
           </LinearGradient>
-          <Badge tone="brand" icon="crown">
-            Repaso Pro
+          <Badge tone="brand" icon="crown" style={styles.heroBadge}>
+            {t('paywall.pro')}
           </Badge>
           <ThemedText type="h1" style={styles.heroTitle}>
-            Generate decks with AI
+            {t('paywall.heroTitle')}
           </ThemedText>
           <ThemedText type="bodyLg" themeColor="textSecondary" style={styles.heroSub}>
-            Stop typing cards by hand. Turn any topic, photo, or word list into a ready-to-study deck.
+            {t('paywall.heroSub')}
           </ThemedText>
         </View>
 
         <View style={styles.benefits}>
-          {BENEFITS.map((b) => (
+          {benefits.map((b) => (
             <View key={b.title} style={styles.benefitRow}>
               <View style={[styles.benefitTile, { backgroundColor: theme.brandSoft }]}>
                 <Icon name={b.icon} size={21} color={theme.brand} />
@@ -124,21 +120,24 @@ export default function PaywallScreen() {
           <ActivityIndicator color={theme.brand} style={styles.loader} />
         ) : packages.length === 0 ? (
           <ThemedText type="sm" themeColor="textMuted">
-            Subscription options are unavailable right now. Please try again later.
+            {t('paywall.unavailable')}
           </ThemedText>
         ) : null}
       </ScrollView>
 
       <BottomBar>
         {packages.map((pkg) => {
-          const { title, suffix, badge } = describePackage(pkg);
+          const { title, suffix, badge } = describePackage(pkg, t);
           const isActive = active?.identifier === pkg.identifier;
           return (
             <Pressable
               key={pkg.identifier}
               accessibilityRole="radio"
               accessibilityState={{ selected: isActive }}
-              accessibilityLabel={`${title} plan, ${pkg.product.priceString}${suffix}`}
+              accessibilityLabel={t('paywall.planA11y', {
+                title,
+                price: `${pkg.product.priceString}${suffix}`,
+              })}
               onPress={() => setSelectedId(pkg.identifier)}
               style={[
                 styles.plan,
@@ -185,8 +184,10 @@ export default function PaywallScreen() {
         <Button
           title={
             active
-              ? `Unlock Pro — ${active.product.priceString}${describePackage(active).suffix}`
-              : 'Unlock Pro'
+              ? t('paywall.unlockProPrice', {
+                  price: `${active.product.priceString}${describePackage(active, t).suffix}`,
+                })
+              : t('paywall.unlockPro')
           }
           variant="spark"
           size="lg"
@@ -200,30 +201,30 @@ export default function PaywallScreen() {
         <View style={styles.assurance}>
           <Icon name="shield-check" size={15} color={theme.success} />
           <ThemedText type="sm" themeColor="textMuted">
-            Cancel anytime
+            {t('paywall.cancelAnytime')}
           </ThemedText>
         </View>
 
         <View style={styles.links}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Restore purchases" disabled={busy} onPress={handleRestore}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('paywall.restoreA11y')} disabled={busy} onPress={handleRestore}>
             <ThemedText type="smBold" themeColor="textMuted">
-              Restore purchase
+              {t('paywall.restore')}
             </ThemedText>
           </Pressable>
           <ThemedText type="sm" themeColor="textMuted">
             ·
           </ThemedText>
-          <Pressable accessibilityRole="link" accessibilityLabel="Open Terms of Use" onPress={() => Linking.openURL(TERMS_URL)}>
+          <Pressable accessibilityRole="link" accessibilityLabel={t('paywall.terms')} onPress={() => Linking.openURL(TERMS_URL)}>
             <ThemedText type="smBold" themeColor="textMuted">
-              Terms
+              {t('paywall.terms')}
             </ThemedText>
           </Pressable>
           <ThemedText type="sm" themeColor="textMuted">
             ·
           </ThemedText>
-          <Pressable accessibilityRole="link" accessibilityLabel="Open Privacy Policy" onPress={() => Linking.openURL(PRIVACY_URL)}>
+          <Pressable accessibilityRole="link" accessibilityLabel={t('paywall.privacy')} onPress={() => Linking.openURL(PRIVACY_URL)}>
             <ThemedText type="smBold" themeColor="textMuted">
-              Privacy
+              {t('paywall.privacy')}
             </ThemedText>
           </Pressable>
         </View>
@@ -237,6 +238,7 @@ const styles = StyleSheet.create({
   closeRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: Spacing.md },
   content: { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing.lg, gap: Spacing.xl },
   hero: { alignItems: 'center', gap: Spacing.md, paddingTop: Spacing.xs },
+  heroBadge: { alignSelf: 'center' },
   heroTile: {
     width: HERO_TILE,
     height: HERO_TILE,

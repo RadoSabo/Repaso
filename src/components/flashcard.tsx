@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Icon } from '@/components/icon';
@@ -20,6 +21,7 @@ interface FlashcardProps {
 export function Flashcard({ card, deck, flipped, showHint, style }: FlashcardProps) {
   const theme = useTheme();
   const shadows = useShadows();
+  const { t } = useTranslation();
 
   return (
     <View
@@ -35,7 +37,7 @@ export function Flashcard({ card, deck, flipped, showHint, style }: FlashcardPro
         type="overline"
         themeColor={flipped ? 'brandContrast' : 'textMuted'}
         style={styles.sideLabel}>
-        {flipped ? deck?.targetLang ?? 'Back' : deck?.knownLang ?? 'Front'}
+        {flipped ? deck?.targetLang ?? t('cardForm.back') : deck?.knownLang ?? t('cardForm.front')}
       </ThemedText>
       <ThemedText type="display" style={styles.text}>
         {flipped ? card.back : card.front}
@@ -45,13 +47,13 @@ export function Flashcard({ card, deck, flipped, showHint, style }: FlashcardPro
           <View style={styles.hintRow}>
             <Icon name="hand-tap" size={15} color={theme.textFaint} />
             <ThemedText type="sm" themeColor="textFaint" numberOfLines={1}>
-              Tap to flip
+              {t('flashcard.tapToFlip')}
             </ThemedText>
           </View>
           <View style={styles.hintRow}>
             <Icon name="swipe" size={15} color={theme.textFaint} />
             <ThemedText type="sm" themeColor="textFaint" numberOfLines={1}>
-              Swipe to answer
+              {t('flashcard.swipeToAnswer')}
             </ThemedText>
           </View>
         </View>

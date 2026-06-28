@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,35 +21,26 @@ interface Step {
   body: string;
 }
 
-const STEPS: readonly Step[] = [
-  {
-    icon: 'sparkle',
-    title: 'Learn words in context',
-    body: 'Drop in words or a topic — Repaso turns them into real sentences with translations.',
-  },
-  {
-    icon: 'microphone',
-    title: 'Type, speak, or snap',
-    body: 'Add vocabulary by typing, recording your voice, or taking a photo.',
-  },
-  {
-    icon: 'refresh',
-    title: 'Remember with repetition',
-    body: 'We remind you to review at just the right time, so it actually sticks.',
-  },
-];
+const STEP_ICONS: readonly IconName[] = ['sparkle', 'microphone', 'refresh'];
 
 const ICON_TILE = 132;
 
 export default function OnboardingScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const setOnboarded = useSettings((s) => s.setOnboarded);
 
+  const steps: readonly Step[] = STEP_ICONS.map((icon, i) => ({
+    icon,
+    title: t(`onboarding.step${i + 1}Title`),
+    body: t(`onboarding.step${i + 1}Body`),
+  }));
+
   const [index, setIndex] = useState(0);
-  const last = index === STEPS.length - 1;
-  const step = STEPS[index];
+  const last = index === steps.length - 1;
+  const step = steps[index];
 
   function finish() {
     // Give first-time users a ready-made deck so the home screen is never empty.
@@ -81,7 +73,7 @@ export default function OnboardingScreen() {
       </View>
 
       <View style={styles.dots}>
-        {STEPS.map((_, n) => (
+        {steps.map((_, n) => (
           <View
             key={n}
             style={[
@@ -100,17 +92,17 @@ export default function OnboardingScreen() {
           variant="primary"
           size="lg"
           block
-          title={last ? 'Start learning' : 'Next'}
+          title={last ? t('onboarding.start') : t('onboarding.next')}
           trailingIcon={last ? 'check' : 'arrow-right'}
           onPress={() => (last ? finish() : setIndex(index + 1))}
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Skip onboarding"
+          accessibilityLabel={t('onboarding.skipA11y')}
           onPress={finish}
           style={styles.skip}>
           <ThemedText type="smBold" themeColor="textMuted">
-            Skip
+            {t('onboarding.skip')}
           </ThemedText>
         </Pressable>
       </BottomBar>

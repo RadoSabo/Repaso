@@ -13,7 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Radius, SparkGradient, Spacing } from '@/constants/theme';
 import { useShadows, useTheme } from '@/hooks/use-theme';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'spark';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'spark';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type ButtonProps = Omit<PressableProps, 'style'> & {
@@ -61,6 +61,7 @@ export function Button({
     secondary: theme.brandSoft,
     ghost: 'transparent',
     danger: theme.dangerSoft,
+    success: theme.success,
     spark: 'transparent',
   };
   const fg: Record<ButtonVariant, string> = {
@@ -68,6 +69,7 @@ export function Button({
     secondary: theme.brandContrast,
     ghost: theme.brandContrast,
     danger: theme.dangerStrong,
+    success: '#FFFFFF',
     spark: '#FFFFFF',
   };
   const lift =

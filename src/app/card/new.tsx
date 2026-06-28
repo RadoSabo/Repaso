@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { CardForm } from '@/components/card-form';
 import { ThemedText } from '@/components/themed-text';
@@ -9,12 +10,13 @@ import { MAX_CARDS_PER_DECK } from '@/lib/limits';
 export default function NewCardScreen() {
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const deck = getDeck(Number(deckId));
 
   if (!deck) {
     return (
       <ThemedView style={{ flex: 1, padding: 24 }}>
-        <ThemedText>Deck not found.</ThemedText>
+        <ThemedText>{t('card.deckNotFound')}</ThemedText>
       </ThemedView>
     );
   }
@@ -25,9 +27,9 @@ export default function NewCardScreen() {
   if (remaining <= 0) {
     return (
       <ThemedView style={{ flex: 1, padding: 24, gap: 8 }}>
-        <ThemedText type="h2">Deck is full</ThemedText>
+        <ThemedText type="h2">{t('card.deckFullTitle')}</ThemedText>
         <ThemedText themeColor="textSecondary">
-          A deck holds up to {MAX_CARDS_PER_DECK} cards. Delete a card before adding a new one.
+          {t('card.deckFullBody', { max: MAX_CARDS_PER_DECK })}
         </ThemedText>
       </ThemedView>
     );
@@ -36,11 +38,11 @@ export default function NewCardScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <CardForm
-        submitLabel="Add card"
-        frontLabel={`Front (${deck.knownLang})`}
-        backLabel={`Back (${deck.targetLang})`}
-        tip="Full sentences help you remember words in context."
-        notice={`${usedCount} of ${MAX_CARDS_PER_DECK} cards used — ${remaining} left.`}
+        submitLabel={t('cardForm.addCard')}
+        frontLabel={t('cardForm.frontWithLang', { lang: deck.knownLang })}
+        backLabel={t('cardForm.backWithLang', { lang: deck.targetLang })}
+        tip={t('cardForm.tip')}
+        notice={t('card.notice', { used: usedCount, max: MAX_CARDS_PER_DECK, remaining })}
         initial={{ front: '', back: '' }}
         onSubmit={(v) => {
           createCard({ deckId: deck.id, front: v.front, back: v.back, source: 'manual' });

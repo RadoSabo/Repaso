@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { BottomBar } from '@/components/bottom-bar';
@@ -28,6 +29,7 @@ export function DeckForm({
   lockLanguages?: boolean;
   onSubmit: (values: DeckFormValues) => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initial.name);
   const [description, setDescription] = useState(initial.description);
   const [knownLang, setKnownLang] = useState(initial.knownLang);
@@ -41,40 +43,40 @@ export function DeckForm({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <TextField
-          label="Deck name"
+          label={t('deckForm.deckName')}
           value={name}
           onChangeText={setName}
-          placeholder="e.g. Spanish basics"
+          placeholder={t('deckForm.deckNamePlaceholder')}
           autoFocus
         />
         <TextField
-          label="Description (optional)"
+          label={t('deckForm.description')}
           value={description}
           onChangeText={setDescription}
-          placeholder="What is this deck for?"
+          placeholder={t('deckForm.descriptionPlaceholder')}
         />
         <View>
           <View style={styles.langRow}>
             <TextField
               containerStyle={styles.langCol}
-              label="I know"
+              label={t('common.iKnow')}
               value={knownLang}
               onChangeText={setKnownLang}
-              placeholder="English"
+              placeholder={t('deckForm.knownPlaceholder')}
               editable={!lockLanguages}
             />
             <TextField
               containerStyle={styles.langCol}
-              label="I'm learning"
+              label={t('common.imLearning')}
               value={targetLang}
               onChangeText={setTargetLang}
-              placeholder="Spanish"
+              placeholder={t('deckForm.targetPlaceholder')}
               editable={!lockLanguages}
             />
           </View>
           {lockLanguages ? (
             <ThemedText type="sm" themeColor="textMuted" style={styles.langNote}>
-              Languages can’t be changed once a deck has cards.
+              {t('deckForm.langLocked')}
             </ThemedText>
           ) : null}
         </View>

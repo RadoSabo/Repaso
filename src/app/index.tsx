@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +26,7 @@ import { useSettings } from '@/store/settings';
 export default function DecksScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const decks = useDeckSummaries();
   const onboarded = useSettings((s) => s.onboarded);
@@ -39,7 +41,7 @@ export default function DecksScreen() {
     <ThemedView style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
         <ThemedText type="display">Repaso</ThemedText>
-        <IconButton icon="gear" variant="soft" label="Settings" onPress={() => router.push('/settings')} />
+        <IconButton icon="gear" variant="soft" label={t('home.settings')} onPress={() => router.push('/settings')} />
       </View>
 
       <Animated.FlatList
@@ -55,7 +57,7 @@ export default function DecksScreen() {
               <ProgressHero due={dueDecks.length} done={done} total={reviewable.length} />
             ) : null}
             <ThemedText type="h2" style={styles.sectionTitle}>
-              Your decks
+              {t('home.yourDecks')}
             </ThemedText>
           </View>
         }
@@ -63,10 +65,10 @@ export default function DecksScreen() {
           <Card variant="sunk" padding="lg" style={styles.empty}>
             <Icon name="cards" size={40} color={theme.textFaint} />
             <ThemedText type="h3" style={styles.emptyTitle}>
-              No decks yet
+              {t('home.noDecksTitle')}
             </ThemedText>
             <ThemedText type="sm" themeColor="textMuted" style={styles.emptyText}>
-              Create a deck and add cards, or generate a set with AI.
+              {t('home.noDecksBody')}
             </ThemedText>
           </Card>
         }
@@ -84,7 +86,7 @@ export default function DecksScreen() {
           <Button
             variant="spark"
             size="lg"
-            title="Generate"
+            title={t('home.generate')}
             leadingIcon="sparkle"
             style={styles.flex}
             onPress={() => router.push('/generate')}
@@ -92,7 +94,7 @@ export default function DecksScreen() {
           <Button
             variant="secondary"
             size="lg"
-            title="New deck"
+            title={t('home.newDeck')}
             leadingIcon="plus"
             style={styles.flex}
             onPress={() => router.push('/deck/new')}
@@ -105,6 +107,7 @@ export default function DecksScreen() {
 
 function ProgressHero({ due, done, total }: { due: number; done: number; total: number }) {
   const shadows = useShadows();
+  const { t } = useTranslation();
   const allDone = due === 0;
   return (
     <LinearGradient
@@ -116,7 +119,7 @@ function ProgressHero({ due, done, total }: { due: number; done: number; total: 
         <View style={styles.heroTitle}>
           <Icon name={allDone ? 'check-circle' : 'calendar-check'} size={24} color="#fff" />
           <ThemedText type="h3" style={styles.heroHeading}>
-            {allDone ? 'All caught up' : `${due} ${due === 1 ? 'deck' : 'decks'} to review`}
+            {allDone ? t('home.allCaughtUp') : t('home.decksToReview', { count: due })}
           </ThemedText>
         </View>
         <ThemedText type="mono" style={styles.heroCount}>
@@ -131,9 +134,7 @@ function ProgressHero({ due, done, total }: { due: number; done: number; total: 
         fillColor="#fff"
       />
       <ThemedText type="sm" style={styles.heroSub}>
-        {allDone
-          ? 'Every deck reviewed — see you next time 🎉'
-          : `${done} of ${total} decks reviewed 💪`}
+        {allDone ? t('home.allReviewed') : t('home.decksReviewed', { done, total })}
       </ThemedText>
     </LinearGradient>
   );
@@ -141,6 +142,7 @@ function ProgressHero({ due, done, total }: { due: number; done: number; total: 
 
 function DeckRow({ deck, onPress }: { deck: DeckSummary; onPress: () => void }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const due = isDue(deck.nextReviewAt, deck.cardCount);
   return (
     <Card padding="none" onPress={onPress} accessibilityLabel={deck.name} style={styles.row}>
@@ -157,14 +159,14 @@ function DeckRow({ deck, onPress }: { deck: DeckSummary; onPress: () => void }) 
       </View>
       <View style={styles.rowStatus}>
         {due ? (
-          <Badge tone="brand">Due</Badge>
+          <Badge tone="brand">{t('home.due')}</Badge>
         ) : deck.cardCount > 0 ? (
           <ThemedText type="sm" themeColor="textMuted">
-            {dueLabel(deck.nextReviewAt)}
+            {dueLabel(t, deck.nextReviewAt)}
           </ThemedText>
         ) : null}
         <ThemedText type="xs" themeColor="textFaint">
-          {deck.cardCount} card{deck.cardCount === 1 ? '' : 's'}
+          {t('home.cardCount', { count: deck.cardCount })}
         </ThemedText>
       </View>
     </Card>
