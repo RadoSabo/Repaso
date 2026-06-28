@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable } from 'react-native';
 
 import { CardForm } from '@/components/card-form';
 import { ThemedText } from '@/components/themed-text';
@@ -15,7 +15,7 @@ export default function EditCardScreen() {
 
   if (!card) {
     return (
-      <ThemedView style={{ flex: 1, padding: Spacing.four }}>
+      <ThemedView style={{ flex: 1, padding: Spacing.xxl }}>
         <ThemedText>Card not found.</ThemedText>
       </ThemedView>
     );
@@ -41,7 +41,7 @@ export default function EditCardScreen() {
         options={{
           headerRight: () => (
             <Pressable hitSlop={12} onPress={confirmDelete}>
-              <ThemedText type="link" themeColor="danger">
+              <ThemedText type="smBold" themeColor="danger">
                 Delete
               </ThemedText>
             </Pressable>
@@ -58,11 +58,6 @@ export default function EditCardScreen() {
           router.back();
         }}
       />
-      <View style={styles.footer} />
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  footer: { height: Spacing.three },
-});

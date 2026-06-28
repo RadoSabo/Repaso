@@ -25,7 +25,7 @@ export default function NewCardScreen() {
   if (remaining <= 0) {
     return (
       <ThemedView style={{ flex: 1, padding: 24, gap: 8 }}>
-        <ThemedText type="subtitle">Deck is full</ThemedText>
+        <ThemedText type="h2">Deck is full</ThemedText>
         <ThemedText themeColor="textSecondary">
           A deck holds up to {MAX_CARDS_PER_DECK} cards. Delete a card before adding a new one.
         </ThemedText>
@@ -39,6 +39,7 @@ export default function NewCardScreen() {
         submitLabel="Add card"
         frontLabel={`Front (${deck.knownLang})`}
         backLabel={`Back (${deck.targetLang})`}
+        tip="Full sentences help you remember words in context."
         notice={`${usedCount} of ${MAX_CARDS_PER_DECK} cards used — ${remaining} left.`}
         initial={{ front: '', back: '' }}
         onSubmit={(v) => {

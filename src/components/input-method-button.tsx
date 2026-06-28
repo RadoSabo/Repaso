@@ -1,15 +1,15 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
+import { Icon, type IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-const ICON_SIZE = 20;
-const LOCK_SIZE = 12;
+const ICON_SIZE = 19;
+const LOCK_SIZE = 13;
 
 export interface InputMethodButtonProps {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   /** Visible + accessibility label (or the live caption, e.g. a timer). */
   label: string;
   accessibilityLabel: string;
@@ -24,8 +24,8 @@ export interface InputMethodButtonProps {
 }
 
 /**
- * A pill button for an alternative input method (record audio, add a photo) that
- * fills the generation field. Shows busy/active/locked states.
+ * A secondary-style button for an alternative input method (record audio, add a
+ * photo) that fills the generation field. Shows busy/active/locked states.
  */
 export function InputMethodButton({
   icon,
@@ -39,7 +39,7 @@ export function InputMethodButton({
 }: InputMethodButtonProps) {
   const theme = useTheme();
   const isDisabled = disabled || busy;
-  const fg = active ? theme.tintText : theme.text;
+  const fg = active ? theme.brandOn : theme.brandContrast;
 
   return (
     <Pressable
@@ -51,22 +51,22 @@ export function InputMethodButton({
       style={({ pressed }) => [
         styles.base,
         {
-          backgroundColor: active ? theme.tint : theme.backgroundElement,
-          borderColor: theme.border,
-          opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
+          backgroundColor: active ? theme.brand : theme.brandSoft,
+          opacity: isDisabled ? 0.5 : pressed ? 0.9 : 1,
+          transform: [{ scale: pressed && !isDisabled ? 0.97 : 1 }],
         },
       ]}>
       {busy ? (
         <ActivityIndicator color={fg} size="small" />
       ) : (
-        <MaterialIcons name={icon} size={ICON_SIZE} color={fg} />
+        <Icon name={icon} size={ICON_SIZE} color={fg} />
       )}
-      <ThemedText type="smallBold" numberOfLines={1} style={{ color: fg }}>
+      <ThemedText type="smBold" numberOfLines={1} style={{ color: fg, fontSize: 15 }}>
         {label}
       </ThemedText>
       {locked ? (
         <View style={[styles.lock, { backgroundColor: theme.text }]}>
-          <MaterialIcons name="lock" size={LOCK_SIZE} color={theme.background} />
+          <Icon name="lock" size={LOCK_SIZE - 3} color={theme.surface} />
         </View>
       ) : null}
     </Pressable>
@@ -79,19 +79,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.two,
-    minHeight: 44,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
-    borderWidth: StyleSheet.hairlineWidth,
+    gap: Spacing.sm,
+    height: 50,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.md,
   },
   lock: {
     position: 'absolute',
     top: -LOCK_SIZE / 2,
     right: -LOCK_SIZE / 2,
-    width: LOCK_SIZE + Spacing.one,
-    height: LOCK_SIZE + Spacing.one,
-    borderRadius: (LOCK_SIZE + Spacing.one) / 2,
+    width: LOCK_SIZE + Spacing.xs,
+    height: LOCK_SIZE + Spacing.xs,
+    borderRadius: (LOCK_SIZE + Spacing.xs) / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

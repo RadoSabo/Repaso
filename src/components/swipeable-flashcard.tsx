@@ -138,13 +138,13 @@ export function SwipeableFlashcard({ card, upcoming, deck, width, onAnswer }: Sw
 
           <Animated.View
             style={[styles.label, styles.labelLeft, { borderColor: theme.success }, knewLabelStyle]}>
-            <ThemedText type="smallBold" style={[styles.labelText, { color: theme.success }]}>
+            <ThemedText type="smBold" style={[styles.labelText, { color: theme.success }]}>
               I knew it
             </ThemedText>
           </Animated.View>
           <Animated.View
             style={[styles.label, styles.labelRight, { borderColor: theme.danger }, missedLabelStyle]}>
-            <ThemedText type="smallBold" style={[styles.labelText, { color: theme.danger }]}>
+            <ThemedText type="smBold" style={[styles.labelText, { color: theme.danger }]}>
               I didn’t know
             </ThemedText>
           </Animated.View>
@@ -166,13 +166,13 @@ const styles = StyleSheet.create({
   },
   label: {
     position: 'absolute',
-    top: Spacing.four,
+    top: Spacing.xxl,
     borderWidth: 2,
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.one,
+    borderRadius: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
-  labelLeft: { left: Spacing.four, transform: [{ rotate: '-12deg' }] },
-  labelRight: { right: Spacing.four, transform: [{ rotate: '12deg' }] },
+  labelLeft: { left: Spacing.xxl, transform: [{ rotate: '-12deg' }] },
+  labelRight: { right: Spacing.xxl, transform: [{ rotate: '12deg' }] },
   labelText: { textTransform: 'uppercase', letterSpacing: 1 },
 });

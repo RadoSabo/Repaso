@@ -1,11 +1,12 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AIButton } from '@/components/ai-button';
+import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
+import { Card } from '@/components/card';
+import { Chip } from '@/components/chip';
+import { IconButton } from '@/components/icon-button';
 import { InputMethodButton } from '@/components/input-method-button';
 import { SegmentedControl, type Segment } from '@/components/segmented-control';
 import { TextField } from '@/components/text-field';
@@ -16,7 +17,6 @@ import { countCardsInDeck, createCards, createDeck, getDeck } from '@/db/queries
 import { useEntitlement } from '@/hooks/use-entitlement';
 import { useGenerationQuota } from '@/hooks/use-generation-quota';
 import { useImageInput } from '@/hooks/use-image-input';
-import { useTheme } from '@/hooks/use-theme';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { generateCards, GenerationError, type DraftCard, type OutputStyle } from '@/lib/generation';
 import { MAX_CARDS_PER_DECK, MAX_RECORDING_SECONDS } from '@/lib/limits';
@@ -25,11 +25,18 @@ import { useSettings } from '@/store/settings';
 type Draft = DraftCard & { id: number };
 
 const OUTPUT_SEGMENTS: readonly Segment<OutputStyle>[] = [
-  { value: 'sentences', label: 'Sentences' },
-  { value: 'words', label: 'Words' },
+  { value: 'sentences', label: 'Sentences', icon: 'chat' },
+  { value: 'words', label: 'Words', icon: 'text' },
 ];
 
-const DELETE_ICON_SIZE = 22;
+const TOPIC_SUGGESTIONS = [
+  'Body parts',
+  'At the airport',
+  'Banking',
+  'Cooking',
+  'Small talk',
+  'Numbers',
+] as const;
 
 function formatSeconds(total: number): string {
   const minutes = Math.floor(total / 60);
@@ -44,9 +51,7 @@ export default function GenerateScreen() {
   const remaining = MAX_CARDS_PER_DECK - usedCount;
   const deckFull = remaining <= 0;
 
-  const theme = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const settings = useSettings();
   const { isPro } = useEntitlement();
   const quota = useGenerationQuota(isPro);
@@ -97,6 +102,10 @@ export default function GenerateScreen() {
     ]);
   }
 
+  function fillTopic(topic: string) {
+    setInputText((prev) => (prev.trim() ? `${prev.trim()}, ${topic.toLowerCase()}` : topic));
+  }
+
   async function handleGenerate() {
     // Free allowance spent → straight to the paywall (server enforces this too).
     if (!quota.canGenerate) {
@@ -145,80 +154,69 @@ export default function GenerateScreen() {
     router.replace(`/deck/${targetDeck.id}`);
   }
 
-  const insetStyle = { paddingBottom: insets.bottom + Spacing.three };
-
   // --- Draft review stage ---
   if (drafts) {
     return (
       <ThemedView style={styles.container}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="sm" themeColor="textSecondary">
             Review and edit each card before saving. Remove any you don’t want.
           </ThemedText>
           {omitted.length > 0 ? (
-            <ThemedText type="small" themeColor="warning">
+            <ThemedText type="sm" themeColor="accentOn">
               Reached the {MAX_CARDS_PER_DECK}-card limit — not added: {omitted.join(', ')}
             </ThemedText>
           ) : null}
           {drafts.length === 0 ? (
-            <ThemedText style={styles.emptyDrafts} themeColor="textSecondary">
+            <ThemedText style={styles.emptyDrafts} themeColor="textMuted">
               No cards left. Go back to generate again.
             </ThemedText>
           ) : (
             drafts.map((d, i) => (
-              <View
-                key={d.id}
-                style={[styles.draft, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
+              <Card key={d.id} padding="md" style={styles.draft}>
                 <View style={styles.draftHeader}>
-                  <ThemedText type="smallBold" themeColor="textSecondary">
+                  <ThemedText type="h3" themeColor="textSecondary">
                     Card {i + 1}
                   </ThemedText>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Remove card ${i + 1}`}
-                    hitSlop={Spacing.two}
+                  <IconButton
+                    icon="trash"
+                    variant="danger"
+                    size="sm"
+                    label={`Remove card ${i + 1}`}
                     onPress={() => setDrafts((ds) => ds!.filter((x) => x.id !== d.id))}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                    <MaterialIcons name="delete-outline" size={DELETE_ICON_SIZE} color={theme.danger} />
-                  </Pressable>
-                </View>
-
-                <View style={styles.draftField}>
-                  <ThemedText type="smallBold" themeColor="textSecondary">
-                    {knownLang}
-                  </ThemedText>
-                  <TextField
-                    value={d.front}
-                    onChangeText={(t) => setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, front: t } : x)))}
-                    style={styles.draftInput}
-                    multiline
                   />
                 </View>
-
-                <View style={styles.draftField}>
-                  <ThemedText type="smallBold" themeColor="tint">
-                    {targetLang}
-                  </ThemedText>
-                  <TextField
-                    value={d.back}
-                    onChangeText={(t) => setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, back: t } : x)))}
-                    style={styles.draftInput}
-                    multiline
-                  />
-                </View>
-              </View>
+                <TextField
+                  label={knownLang}
+                  value={d.front}
+                  onChangeText={(t) =>
+                    setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, front: t } : x)))
+                  }
+                />
+                <TextField
+                  label={targetLang}
+                  value={d.back}
+                  onChangeText={(t) =>
+                    setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, back: t } : x)))
+                  }
+                />
+              </Card>
             ))
           )}
         </ScrollView>
-        <View style={[styles.footer, insetStyle, { borderTopColor: theme.border }]}>
-          <Button title="Back" variant="secondary" style={styles.flex} onPress={() => setDrafts(null)} />
-          <Button
-            title={`Save ${drafts.length} cards`}
-            style={styles.flex}
-            disabled={drafts.length === 0}
-            onPress={handleSave}
-          />
-        </View>
+        <BottomBar>
+          <View style={styles.row}>
+            <Button title="Back" variant="secondary" size="lg" onPress={() => setDrafts(null)} />
+            <Button
+              title={`Save ${drafts.length} cards`}
+              size="lg"
+              leadingIcon="check"
+              style={styles.flex}
+              disabled={drafts.length === 0}
+              onPress={handleSave}
+            />
+          </View>
+        </BottomBar>
       </ThemedView>
     );
   }
@@ -236,7 +234,7 @@ export default function GenerateScreen() {
         />
 
         {existingDeck ? (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="sm" themeColor="textSecondary">
             Adding to “{existingDeck.name}”.
           </ThemedText>
         ) : (
@@ -247,14 +245,9 @@ export default function GenerateScreen() {
               onChangeText={setDeckName}
               placeholder="Generated deck"
             />
-
-            <View style={styles.langRow}>
-              <View style={styles.flex}>
-                <TextField label="I know" value={knownLang} onChangeText={setKnownLang} />
-              </View>
-              <View style={styles.flex}>
-                <TextField label="I'm learning" value={targetLang} onChangeText={setTargetLang} />
-              </View>
+            <View style={styles.row}>
+              <TextField containerStyle={styles.flex} label="I know" value={knownLang} onChangeText={setKnownLang} />
+              <TextField containerStyle={styles.flex} label="I'm learning" value={targetLang} onChangeText={setTargetLang} />
             </View>
           </>
         )}
@@ -269,9 +262,17 @@ export default function GenerateScreen() {
           style={styles.itemsInput}
         />
 
-        <View style={styles.captureRow}>
+        <View style={styles.chips}>
+          {TOPIC_SUGGESTIONS.map((t) => (
+            <Chip key={t} icon="sparkle" onPress={() => fillTopic(t)}>
+              {t}
+            </Chip>
+          ))}
+        </View>
+
+        <View style={styles.row}>
           <InputMethodButton
-            icon={voice.phase === 'recording' ? 'stop' : 'mic'}
+            icon={voice.phase === 'recording' ? 'stop' : 'microphone'}
             label={
               voice.phase === 'recording'
                 ? `${formatSeconds(voice.seconds)} / ${formatSeconds(MAX_RECORDING_SECONDS)}`
@@ -287,7 +288,7 @@ export default function GenerateScreen() {
             onPress={handleRecordPress}
           />
           <InputMethodButton
-            icon="photo-camera"
+            icon="camera"
             label={image.loading ? 'Reading…' : 'Photo'}
             accessibilityLabel="Add a photo to generate cards from"
             busy={image.loading}
@@ -298,24 +299,24 @@ export default function GenerateScreen() {
         </View>
 
         {captureError ? (
-          <ThemedText type="small" themeColor="danger">
+          <ThemedText type="sm" themeColor="danger">
             {captureError}
           </ThemedText>
         ) : null}
 
         {error ? (
-          <ThemedText type="small" themeColor="danger">
+          <ThemedText type="sm" themeColor="danger">
             {error}
           </ThemedText>
         ) : null}
 
-        <ThemedText type="small" themeColor="textSecondary">
-          Type or speak words to translate, or describe what you want to learn (e.g.
-          banking and mortgage vocabulary). Each card is a {knownLang} {styleNoun} with
-          its {targetLang} translation.
+        <ThemedText type="sm" themeColor="textMuted">
+          Type or speak words to translate, or describe what you want to learn (e.g. banking and
+          mortgage vocabulary). Each card is a {knownLang} {styleNoun} with its {targetLang}{' '}
+          translation.
         </ThemedText>
 
-        <ThemedText type="small" themeColor={deckFull ? 'danger' : 'textSecondary'}>
+        <ThemedText type="sm" themeColor={deckFull ? 'danger' : 'textMuted'}>
           {existingDeck
             ? deckFull
               ? `This deck is full (${MAX_CARDS_PER_DECK} cards max). Delete some cards to add more.`
@@ -324,51 +325,37 @@ export default function GenerateScreen() {
         </ThemedText>
 
         {!isPro ? (
-          <ThemedText type="small" themeColor={quota.remaining === 0 ? 'danger' : 'textSecondary'}>
+          <ThemedText type="sm" themeColor={quota.remaining === 0 ? 'danger' : 'textMuted'}>
             {quota.remaining} free {quota.remaining === 1 ? 'generation' : 'generations'} left this
             month — unlimited with Repaso Pro.
           </ThemedText>
         ) : null}
       </ScrollView>
 
-      <View style={[styles.footer, insetStyle, { borderTopColor: theme.border }]}>
-        <AIButton
+      <BottomBar>
+        <Button
           title="Generate cards"
+          variant="spark"
+          size="lg"
+          block
+          leadingIcon="sparkle"
           loading={loading}
           disabled={deckFull || capturing || inputText.trim().length === 0}
-          style={styles.flex}
           onPress={handleGenerate}
         />
-      </View>
+      </BottomBar>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: Spacing.three, gap: Spacing.three },
-  langRow: { flexDirection: 'row', gap: Spacing.three },
-  itemsInput: { minHeight: 160 },
-  captureRow: { flexDirection: 'row', gap: Spacing.three },
-  draft: {
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  draftHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  draftField: { gap: Spacing.one },
-  draftInput: { minHeight: 56 },
-  emptyDrafts: { paddingVertical: Spacing.four, textAlign: 'center' },
-  footer: {
-    flexDirection: 'row',
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
+  content: { padding: Spacing.gutter, gap: Spacing.lg },
+  row: { flexDirection: 'row', gap: Spacing.md },
   flex: { flex: 1 },
+  itemsInput: { minHeight: 120 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  draft: { gap: Spacing.md },
+  draftHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  emptyDrafts: { paddingVertical: Spacing.xxl, textAlign: 'center' },
 });

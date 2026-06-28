@@ -1,14 +1,16 @@
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 
+import { Icon, type IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Radius, Spacing } from '@/constants/theme';
+import { useShadows, useTheme } from '@/hooks/use-theme';
 
-const TRACK_PADDING = Spacing.half;
+const TRACK_PADDING = Spacing.xs;
 
 export interface Segment<T extends string> {
   value: T;
   label: string;
+  icon?: IconName;
 }
 
 export interface SegmentedControlProps<T extends string> {
@@ -19,8 +21,9 @@ export interface SegmentedControlProps<T extends string> {
 }
 
 /**
- * A themed two-or-more option segmented control. Presentational + controlled:
- * the parent owns the selected value.
+ * A themed tab-style toggle. Presentational + controlled: the parent owns the
+ * selected value. The active segment lifts onto a `surface` chip with a soft
+ * shadow.
  */
 export function SegmentedControl<T extends string>({
   segments,
@@ -29,8 +32,9 @@ export function SegmentedControl<T extends string>({
   style,
 }: SegmentedControlProps<T>) {
   const theme = useTheme();
+  const shadows = useShadows();
   return (
-    <View style={[styles.track, { backgroundColor: theme.backgroundElement }, style]}>
+    <View style={[styles.track, { backgroundColor: theme.surfaceSunk }, style]}>
       {segments.map((segment) => {
         const selected = segment.value === value;
         return (
@@ -40,10 +44,20 @@ export function SegmentedControl<T extends string>({
             accessibilityLabel={segment.label}
             accessibilityState={{ selected }}
             onPress={() => onChange(segment.value)}
-            style={[styles.segment, selected && { backgroundColor: theme.background }]}>
+            style={[
+              styles.segment,
+              selected && { backgroundColor: theme.surface, ...shadows.sm },
+            ]}>
+            {segment.icon ? (
+              <Icon
+                name={segment.icon}
+                size={16}
+                color={selected ? theme.text : theme.textMuted}
+              />
+            ) : null}
             <ThemedText
-              type="smallBold"
-              themeColor={selected ? 'text' : 'textSecondary'}
+              type="smBold"
+              themeColor={selected ? 'text' : 'textMuted'}
               numberOfLines={1}>
               {segment.label}
             </ThemedText>
@@ -58,14 +72,16 @@ const styles = StyleSheet.create({
   track: {
     flexDirection: 'row',
     padding: TRACK_PADDING,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.md,
     gap: TRACK_PADDING,
   },
   segment: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.three - TRACK_PADDING,
+    gap: Spacing.xs + 2,
+    height: 42,
+    borderRadius: Radius.sm,
   },
 });
