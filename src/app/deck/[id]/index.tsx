@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
@@ -10,6 +11,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { cardsForDeckQuery, deckByIdQuery } from '@/db/queries';
+import type { Card as CardRow } from '@/db/schema';
 import { confirmDeleteCard, confirmDeleteDeck } from '@/lib/deck-actions';
 import { dueLabel, isDue } from '@/lib/scheduling';
 
@@ -70,9 +72,10 @@ export default function DeckDetailScreen() {
         </View>
       </View>
 
-      <FlatList
+      <Animated.FlatList
         data={cards}
-        keyExtractor={(c) => String(c.id)}
+        keyExtractor={(c: CardRow) => String(c.id)}
+        itemLayoutAnimation={LinearTransition.duration(220)}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -83,7 +86,7 @@ export default function DeckDetailScreen() {
             </ThemedText>
           </View>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item }: { item: CardRow }) => (
           <SwipeableCardRow
             onEdit={() => router.push(`/card/${item.id}`)}
             onDelete={() => confirmDeleteCard(item.id, item.front)}>

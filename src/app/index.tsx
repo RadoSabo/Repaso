@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/badge';
@@ -41,9 +42,10 @@ export default function DecksScreen() {
         <IconButton icon="gear" variant="soft" label="Settings" onPress={() => router.push('/settings')} />
       </View>
 
-      <FlatList
+      <Animated.FlatList
         data={decks}
-        keyExtractor={(d) => String(d.id)}
+        keyExtractor={(d: DeckSummary) => String(d.id)}
+        itemLayoutAnimation={LinearTransition.duration(220)}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -68,7 +70,7 @@ export default function DecksScreen() {
             </ThemedText>
           </Card>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item }: { item: DeckSummary }) => (
           <SwipeableCardRow
             onEdit={() => router.push(`/deck/${item.id}/edit`)}
             onDelete={() => confirmDeleteDeck(item.id, item.name)}>
