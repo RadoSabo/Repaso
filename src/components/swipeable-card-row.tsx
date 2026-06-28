@@ -83,13 +83,16 @@ export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRo
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderRadius: Radius.lg, overflow: 'hidden' },
+  // No `overflow: hidden` so a card's shadow isn't clipped; the backgrounds
+  // carry their own radius to match the rounded card on top.
+  wrap: { borderRadius: Radius.lg },
   bg: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
+    borderRadius: Radius.lg,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs + 2,

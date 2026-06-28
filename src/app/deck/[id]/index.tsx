@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
@@ -9,8 +9,8 @@ import { SwipeableCardRow } from '@/components/swipeable-card-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { cardsForDeckQuery, deckByIdQuery, deleteCard, deleteDeck } from '@/db/queries';
-import { cancelReminder } from '@/lib/notifications';
+import { cardsForDeckQuery, deckByIdQuery } from '@/db/queries';
+import { confirmDeleteCard, confirmDeleteDeck } from '@/lib/deck-actions';
 import { dueLabel, isDue } from '@/lib/scheduling';
 
 export default function DeckDetailScreen() {
@@ -27,28 +27,6 @@ export default function DeckDetailScreen() {
 
   const cardCount = cards?.length ?? 0;
   const due = deck ? isDue(deck.nextReviewAt, cardCount) : false;
-
-  function confirmDeleteCard(cardId: number, front: string) {
-    Alert.alert('Delete card?', `"${front}" will be removed from the deck.`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteCard(cardId) },
-    ]);
-  }
-
-  function confirmDelete() {
-    Alert.alert('Delete deck?', `"${deck?.name}" and all its cards will be removed.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          cancelReminder(deck?.notificationId);
-          deleteDeck(deckId);
-          router.back();
-        },
-      },
-    ]);
-  }
 
   if (!deck) {
     return (
@@ -146,7 +124,10 @@ export default function DeckDetailScreen() {
           disabled={cardCount === 0}
           onPress={() => router.push(`/deck/${deckId}/review`)}
         />
-        <Pressable onPress={confirmDelete} style={styles.deleteBtn} hitSlop={8}>
+        <Pressable
+          onPress={() => confirmDeleteDeck(deck.id, deck.name, () => router.back())}
+          style={styles.deleteBtn}
+          hitSlop={8}>
           <ThemedText type="sm" themeColor="danger">
             Delete deck
           </ThemedText>

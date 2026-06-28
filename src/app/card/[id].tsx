@@ -1,11 +1,12 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 
 import { CardForm } from '@/components/card-form';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { deleteCard, getCard, getDeck, updateCard } from '@/db/queries';
+import { getCard, getDeck, updateCard } from '@/db/queries';
+import { confirmDeleteCard } from '@/lib/deck-actions';
 
 export default function EditCardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,26 +22,14 @@ export default function EditCardScreen() {
     );
   }
 
-  function confirmDelete() {
-    Alert.alert('Delete card?', 'This card will be removed from the deck.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          deleteCard(card!.id);
-          router.back();
-        },
-      },
-    ]);
-  }
-
   return (
     <ThemedView style={{ flex: 1 }}>
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable hitSlop={12} onPress={confirmDelete}>
+            <Pressable
+              hitSlop={12}
+              onPress={() => confirmDeleteCard(card.id, card.front, () => router.back())}>
               <ThemedText type="smBold" themeColor="danger">
                 Delete
               </ThemedText>

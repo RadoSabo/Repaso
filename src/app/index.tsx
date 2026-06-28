@@ -10,12 +10,14 @@ import { Card } from '@/components/card';
 import { Icon } from '@/components/icon';
 import { IconButton } from '@/components/icon-button';
 import { ProgressBar } from '@/components/progress-bar';
+import { SwipeableCardRow } from '@/components/swipeable-card-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, SparkGradient, Spacing } from '@/constants/theme';
 import { type DeckSummary } from '@/db/queries';
 import { useDeckSummaries } from '@/hooks/use-deck-summaries';
 import { useShadows, useTheme } from '@/hooks/use-theme';
+import { confirmDeleteDeck } from '@/lib/deck-actions';
 import { dueLabel, isDue } from '@/lib/scheduling';
 import { useSettings } from '@/store/settings';
 
@@ -67,7 +69,11 @@ export default function DecksScreen() {
           </Card>
         }
         renderItem={({ item }) => (
-          <DeckRow deck={item} onPress={() => router.push(`/deck/${item.id}`)} />
+          <SwipeableCardRow
+            onEdit={() => router.push(`/deck/${item.id}/edit`)}
+            onDelete={() => confirmDeleteDeck(item.id, item.name)}>
+            <DeckRow deck={item} onPress={() => router.push(`/deck/${item.id}`)} />
+          </SwipeableCardRow>
         )}
       />
 
