@@ -18,9 +18,12 @@ export default function DeckDetailScreen() {
   const deckId = Number(id);
   const router = useRouter();
 
-  const { data: deckRows } = useLiveQuery(deckByIdQuery(deckId), [deckId]);
+  const { data: deckRows, updatedAt } = useLiveQuery(deckByIdQuery(deckId), [deckId]);
   const { data: cards } = useLiveQuery(cardsForDeckQuery(deckId), [deckId]);
   const deck = deckRows?.[0];
+  // `updatedAt` is undefined until the live query first resolves; treat that as
+  // loading so we don't flash "Deck not found" before the row arrives.
+  const loading = updatedAt === undefined;
 
   const cardCount = cards?.length ?? 0;
   const due = deck ? isDue(deck.nextReviewAt, cardCount) : false;
@@ -51,9 +54,11 @@ export default function DeckDetailScreen() {
     return (
       <ThemedView style={styles.container}>
         <Stack.Screen options={{ title: 'Deck' }} />
-        <View style={styles.empty}>
-          <ThemedText themeColor="textSecondary">Deck not found.</ThemedText>
-        </View>
+        {loading ? null : (
+          <View style={styles.empty}>
+            <ThemedText themeColor="textSecondary">Deck not found.</ThemedText>
+          </View>
+        )}
       </ThemedView>
     );
   }
