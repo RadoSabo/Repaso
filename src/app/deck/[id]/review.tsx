@@ -1,25 +1,33 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
-import { SwipeableFlashcard } from '@/components/swipeable-flashcard';
+import { Icon, type IconName } from '@/components/icon';
+import { ProgressBar } from '@/components/progress-bar';
+import {
+  SwipeableFlashcard,
+  type SwipeableFlashcardHandle,
+} from '@/components/swipeable-flashcard';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useReviewSession } from '@/hooks/use-review-session';
 import { useTheme } from '@/hooks/use-theme';
 import { intervalDaysForStage } from '@/lib/scheduling';
+
+const DONE_TILE = 120;
 
 export default function ReviewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const deckId = Number(id);
   const theme = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
   const { deck, current, upcoming, knew, missed, total, answer } = useReviewSession(deckId);
+  const cardRef = useRef<SwipeableFlashcardHandle>(null);
 
   // Session finished (or deck had no cards).
   if (!current) {
@@ -28,40 +36,56 @@ export default function ReviewScreen() {
       <ThemedView style={styles.container}>
         <Stack.Screen options={{ title: 'Review' }} />
         <View style={styles.center}>
-          <ThemedText type="title" style={styles.doneEmoji}>
-            🎉
-          </ThemedText>
-          <ThemedText type="subtitle">All done</ThemedText>
+          <View style={[styles.doneTile, { backgroundColor: theme.successSoft }]}>
+            <Icon name="confetti" size={58} color={theme.successOn} />
+          </View>
+          <ThemedText type="h1">Nice work!</ThemedText>
           {total > 0 ? (
             <>
-              <ThemedText themeColor="textSecondary" style={styles.centerText}>
-                You knew {knew} of {total}
-                {missed > 0 ? ` · ${missed} repeat${missed === 1 ? '' : 's'}` : ''}
+              <ThemedText type="bodyLg" themeColor="textSecondary" style={styles.centerText}>
+                You reviewed {total} card{total === 1 ? '' : 's'}
+                {deck ? ` from ${deck.name}` : ''}.
               </ThemedText>
-              <ThemedText type="small" themeColor="tint" style={styles.centerText}>
-                Next reminder in {days} day{days === 1 ? '' : 's'}
+              <ThemedText type="body" themeColor="textMuted" style={styles.centerText}>
+                You knew {knew}
+                {missed > 0 ? ` · ${missed} repeat${missed === 1 ? '' : 's'}` : ''} · next reminder in{' '}
+                {days} day{days === 1 ? '' : 's'} 🔁
               </ThemedText>
             </>
           ) : (
-            <ThemedText themeColor="textSecondary" style={styles.centerText}>
+            <ThemedText themeColor="textMuted" style={styles.centerText}>
               This deck has no cards yet.
             </ThemedText>
           )}
         </View>
-        <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.three }]}>
-          <Button title="Back to deck" onPress={() => router.back()} />
-        </View>
+        <BottomBar>
+          <Button title="Done" size="lg" block leadingIcon="check" onPress={() => router.back()} />
+        </BottomBar>
       </ThemedView>
     );
   }
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ title: `Review · ${knew}/${total}` }} />
+      <Stack.Screen
+        options={{
+          title: 'Review',
+          headerRight: () => (
+            <ThemedText type="mono" themeColor="textMuted">
+              {knew}/{total}
+            </ThemedText>
+          ),
+        }}
+      />
+
+      <View style={styles.progress}>
+        <ProgressBar value={knew} max={total} height={8} />
+      </View>
 
       <View style={styles.cardArea}>
         <View style={styles.stack}>
           <SwipeableFlashcard
+            ref={cardRef}
             key={current.id}
             card={current}
             upcoming={upcoming}
@@ -72,23 +96,46 @@ export default function ReviewScreen() {
         </View>
       </View>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.three }]}>
+      <BottomBar>
+        <ThemedText type="smBold" themeColor="textMuted" style={styles.prompt}>
+          How well did you know it?
+        </ThemedText>
         <View style={styles.answers}>
-          <AnswerButton label="I didn’t know" color={theme.danger} onPress={() => answer(false)} />
-          <AnswerButton label="I knew it" color={theme.success} onPress={() => answer(true)} />
+          <AnswerButton
+            label="Study again"
+            icon="refresh"
+            bg={theme.dangerSoft}
+            fg={theme.dangerOn}
+            chip={theme.danger}
+            onPress={() => cardRef.current?.fling(false)}
+          />
+          <AnswerButton
+            label="Got it"
+            icon="check"
+            bg={theme.successSoft}
+            fg={theme.successOn}
+            chip={theme.success}
+            onPress={() => cardRef.current?.fling(true)}
+          />
         </View>
-      </View>
+      </BottomBar>
     </ThemedView>
   );
 }
 
 function AnswerButton({
   label,
-  color,
+  icon,
+  bg,
+  fg,
+  chip,
   onPress,
 }: {
   label: string;
-  color: string;
+  icon: IconName;
+  bg: string;
+  fg: string;
+  chip: string;
   onPress: () => void;
 }) {
   return (
@@ -98,9 +145,12 @@ function AnswerButton({
       accessibilityLabel={label}
       style={({ pressed }) => [
         styles.answerBtn,
-        { backgroundColor: color, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: bg, transform: [{ scale: pressed ? 0.97 : 1 }] },
       ]}>
-      <ThemedText type="smallBold" style={styles.answerText}>
+      <View style={[styles.answerChip, { backgroundColor: chip }]}>
+        <Icon name={icon} size={17} color="#fff" />
+      </View>
+      <ThemedText type="smBold" style={{ color: fg, fontSize: 15 }}>
         {label}
       </ThemedText>
     </Pressable>
@@ -109,19 +159,35 @@ function AnswerButton({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  cardArea: { flex: 1, padding: Spacing.three },
+  progress: { paddingHorizontal: Spacing.gutter, paddingTop: Spacing.sm },
+  cardArea: { flex: 1, padding: Spacing.gutter },
   stack: { flex: 1 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.two },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xxxl },
   centerText: { textAlign: 'center' },
-  doneEmoji: { fontSize: 56, lineHeight: 64 },
-  footer: { padding: Spacing.three, gap: Spacing.three },
-  answers: { flexDirection: 'row', gap: Spacing.three },
+  doneTile: {
+    width: DONE_TILE,
+    height: DONE_TILE,
+    borderRadius: Radius.xxl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+  },
+  prompt: { textAlign: 'center' },
+  answers: { flexDirection: 'row', gap: Spacing.md },
   answerBtn: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm + 1,
     minHeight: 56,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.lg,
+  },
+  answerChip: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  answerText: { color: '#fff' },
 });

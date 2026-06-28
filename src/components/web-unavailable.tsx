@@ -37,11 +37,11 @@ export function WebUnavailable() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#ffffff' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#F4F8F7' },
   card: { maxWidth: 420, alignItems: 'center', gap: 12 },
-  title: { fontSize: 28, fontWeight: '700', color: '#11181C' },
-  body: { fontSize: 16, lineHeight: 24, color: '#60646C', textAlign: 'center' },
+  title: { fontSize: 28, fontWeight: '700', color: '#EA6212' },
+  body: { fontSize: 16, lineHeight: 24, color: '#4D5955', textAlign: 'center' },
   links: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  link: { fontSize: 14, color: '#208AEF' },
-  dot: { fontSize: 14, color: '#60646C' },
+  link: { fontSize: 14, color: '#EA6212' },
+  dot: { fontSize: 14, color: '#697672' },
 });

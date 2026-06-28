@@ -4,7 +4,9 @@
  * Learn more: https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
+import { useMemo } from 'react';
+
+import { Colors, makeShadows, type Palette, type Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSettings } from '@/store/settings';
 
@@ -18,6 +20,12 @@ export function useResolvedScheme(): 'light' | 'dark' {
   return system === 'dark' ? 'dark' : 'light';
 }
 
-export function useTheme() {
+export function useTheme(): Palette {
   return Colors[useResolvedScheme()];
+}
+
+/** Scheme-aware elevation tokens (brand-tinted shadows track the active brand). */
+export function useShadows(): Shadows {
+  const theme = useTheme();
+  return useMemo(() => makeShadows(theme), [theme]);
 }

@@ -36,12 +36,15 @@ export interface SettingsState {
   /** Whether generated cards are full sentences or bare vocabulary pairs. */
   outputStyle: OutputStyle;
   themePreference: ThemePreference;
+  /** False until the user finishes (or skips) the first-launch intro. */
+  onboarded: boolean;
   /** True once the persisted state has finished loading from storage. */
   hydrated: boolean;
   setKnownLang: (v: string) => void;
   setTargetLang: (v: string) => void;
   setOutputStyle: (v: OutputStyle) => void;
   setThemePreference: (v: ThemePreference) => void;
+  setOnboarded: (v: boolean) => void;
 }
 
 export const useSettings = create<SettingsState>()(
@@ -51,21 +54,24 @@ export const useSettings = create<SettingsState>()(
       targetLang: "Spanish",
       outputStyle: "sentences",
       themePreference: "system",
+      onboarded: false,
       hydrated: false,
       setKnownLang: (v) => set({ knownLang: v }),
       setTargetLang: (v) => set({ targetLang: v }),
       setOutputStyle: (v) => set({ outputStyle: v }),
       setThemePreference: (v) => set({ themePreference: v }),
+      setOnboarded: (v) => set({ onboarded: v }),
     }),
     {
       name: "repaso-settings",
       storage: createJSONStorage(() => persistentStorage),
       // Don't persist functions or the transient `hydrated` flag.
-      partialize: ({ knownLang, targetLang, outputStyle, themePreference }) => ({
+      partialize: ({ knownLang, targetLang, outputStyle, themePreference, onboarded }) => ({
         knownLang,
         targetLang,
         outputStyle,
         themePreference,
+        onboarded,
       }),
       onRehydrateStorage: () => () => {
         useSettings.setState({ hydrated: true });

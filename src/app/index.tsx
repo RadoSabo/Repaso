@@ -1,160 +1,213 @@
-import { Link, Stack, useRouter } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Redirect, useRouter } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
+import Animated, { LinearTransition } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AIButton } from "@/components/ai-button";
-import { Button } from "@/components/button";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
-import { type DeckSummary } from "@/db/queries";
-import { useDeckSummaries } from "@/hooks/use-deck-summaries";
-import { useTheme } from "@/hooks/use-theme";
-import { dueLabel, isDue } from "@/lib/scheduling";
+import { Badge } from '@/components/badge';
+import { BottomBar } from '@/components/bottom-bar';
+import { Button } from '@/components/button';
+import { Card } from '@/components/card';
+import { Icon } from '@/components/icon';
+import { IconButton } from '@/components/icon-button';
+import { ProgressBar } from '@/components/progress-bar';
+import { SwipeableCardRow } from '@/components/swipeable-card-row';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Radius, SparkGradient, Spacing } from '@/constants/theme';
+import { type DeckSummary } from '@/db/queries';
+import { useDeckSummaries } from '@/hooks/use-deck-summaries';
+import { useShadows, useTheme } from '@/hooks/use-theme';
+import { confirmDeleteDeck } from '@/lib/deck-actions';
+import { dueLabel, isDue } from '@/lib/scheduling';
+import { useSettings } from '@/store/settings';
 
 export default function DecksScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const decks = useDeckSummaries();
+  const onboarded = useSettings((s) => s.onboarded);
+
+  if (!onboarded) return <Redirect href="/onboarding" />;
+
+  const reviewable = decks.filter((d) => d.cardCount > 0);
+  const dueDecks = reviewable.filter((d) => isDue(d.nextReviewAt, d.cardCount));
+  const done = reviewable.length - dueDecks.length;
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Link href="/settings" asChild>
-              <Pressable hitSlop={12} accessibilityLabel="Settings">
-                <ThemedText style={styles.gear}>⚙︎</ThemedText>
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
+        <ThemedText type="display">Repaso</ThemedText>
+        <IconButton icon="gear" variant="soft" label="Settings" onPress={() => router.push('/settings')} />
+      </View>
 
-      <FlatList
+      <Animated.FlatList
         data={decks}
-        keyExtractor={(d) => String(d.id)}
+        keyExtractor={(d: DeckSummary) => String(d.id)}
+        itemLayoutAnimation={LinearTransition.duration(220)}
+        style={styles.list}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <ThemedText type="subtitle" style={styles.emptyTitle}>
-              No decks yet
-            </ThemedText>
-            <ThemedText themeColor="textSecondary" style={styles.emptyText}>
-              Create a deck and add cards, or generate a set with AI.
+        ListHeaderComponent={
+          <View>
+            {reviewable.length > 0 ? (
+              <ProgressHero due={dueDecks.length} done={done} total={reviewable.length} />
+            ) : null}
+            <ThemedText type="h2" style={styles.sectionTitle}>
+              Your decks
             </ThemedText>
           </View>
         }
-        renderItem={({ item }) => (
-          <DeckRow
-            deck={item}
-            onPress={() => router.push(`/deck/${item.id}`)}
-          />
+        ListEmptyComponent={
+          <Card variant="sunk" padding="lg" style={styles.empty}>
+            <Icon name="cards" size={40} color={theme.textFaint} />
+            <ThemedText type="h3" style={styles.emptyTitle}>
+              No decks yet
+            </ThemedText>
+            <ThemedText type="sm" themeColor="textMuted" style={styles.emptyText}>
+              Create a deck and add cards, or generate a set with AI.
+            </ThemedText>
+          </Card>
+        }
+        renderItem={({ item }: { item: DeckSummary }) => (
+          <SwipeableCardRow
+            onEdit={() => router.push(`/deck/${item.id}/edit`)}
+            onDelete={() => confirmDeleteDeck(item.id, item.name)}>
+            <DeckRow deck={item} onPress={() => router.push(`/deck/${item.id}`)} />
+          </SwipeableCardRow>
         )}
       />
 
-      <View
-        style={[
-          styles.actions,
-          {
-            paddingBottom: insets.bottom + Spacing.three,
-            borderTopColor: theme.border,
-          },
-        ]}
-      >
-        <AIButton
-          title="Generate"
-          style={styles.actionBtn}
-          onPress={() => router.push("/generate")}
-        />
-        <Button
-          title="+ New deck"
-          style={styles.actionBtn}
-          onPress={() => router.push("/deck/new")}
-        />
-      </View>
+      <BottomBar>
+        <View style={styles.actions}>
+          <Button
+            variant="spark"
+            size="lg"
+            title="Generate"
+            leadingIcon="sparkle"
+            style={styles.flex}
+            onPress={() => router.push('/generate')}
+          />
+          <Button
+            variant="secondary"
+            size="lg"
+            title="New deck"
+            leadingIcon="plus"
+            style={styles.flex}
+            onPress={() => router.push('/deck/new')}
+          />
+        </View>
+      </BottomBar>
     </ThemedView>
   );
 }
 
-function DeckRow({
-  deck,
-  onPress,
-}: {
-  deck: DeckSummary;
-  onPress: () => void;
-}) {
-  const theme = useTheme();
+function ProgressHero({ due, done, total }: { due: number; done: number; total: number }) {
+  const shadows = useShadows();
+  const allDone = due === 0;
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        {
-          backgroundColor: pressed
-            ? theme.backgroundSelected
-            : theme.backgroundElement,
-        },
-      ]}
-    >
-      <View style={styles.rowText}>
-        <ThemedText type="smallBold" numberOfLines={1}>
-          {deck.name}
-        </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {deck.knownLang} → {deck.targetLang} · {deck.cardCount} card
-          {deck.cardCount === 1 ? "" : "s"}
-        </ThemedText>
-      </View>
-      {isDue(deck.nextReviewAt, deck.cardCount) ? (
-        <View style={[styles.badge, { backgroundColor: theme.tint }]}>
-          <ThemedText type="smallBold" style={{ color: theme.tintText }}>
-            Review
+    <LinearGradient
+      colors={SparkGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.hero, shadows.spark]}>
+      <View style={styles.heroTop}>
+        <View style={styles.heroTitle}>
+          <Icon name={allDone ? 'check-circle' : 'calendar-check'} size={24} color="#fff" />
+          <ThemedText type="h3" style={styles.heroHeading}>
+            {allDone ? 'All caught up' : `${due} ${due === 1 ? 'deck' : 'decks'} to review`}
           </ThemedText>
         </View>
-      ) : (
-        <ThemedText type="small" themeColor="textSecondary">
-          {deck.cardCount > 0 ? dueLabel(deck.nextReviewAt) : "0 cards"}
+        <ThemedText type="mono" style={styles.heroCount}>
+          {done}/{total}
         </ThemedText>
-      )}
-    </Pressable>
+      </View>
+      <ProgressBar
+        value={done}
+        max={total}
+        height={10}
+        trackColor="rgba(255,255,255,0.3)"
+        fillColor="#fff"
+      />
+      <ThemedText type="sm" style={styles.heroSub}>
+        {allDone
+          ? 'Every deck reviewed — see you next time 🎉'
+          : `${done} of ${total} decks reviewed 💪`}
+      </ThemedText>
+    </LinearGradient>
+  );
+}
+
+function DeckRow({ deck, onPress }: { deck: DeckSummary; onPress: () => void }) {
+  const theme = useTheme();
+  const due = isDue(deck.nextReviewAt, deck.cardCount);
+  return (
+    <Card padding="none" onPress={onPress} accessibilityLabel={deck.name} style={styles.row}>
+      <View style={[styles.deckIcon, { backgroundColor: theme.brandSofter }]}>
+        <Icon name="cards" size={24} color={theme.brand} />
+      </View>
+      <View style={styles.rowText}>
+        <ThemedText type="h3" numberOfLines={1}>
+          {deck.name}
+        </ThemedText>
+        <ThemedText type="sm" themeColor="textMuted" numberOfLines={1}>
+          {deck.knownLang} → {deck.targetLang}
+        </ThemedText>
+      </View>
+      <View style={styles.rowStatus}>
+        {due ? (
+          <Badge tone="brand">Due</Badge>
+        ) : deck.cardCount > 0 ? (
+          <ThemedText type="sm" themeColor="textMuted">
+            {dueLabel(deck.nextReviewAt)}
+          </ThemedText>
+        ) : null}
+        <ThemedText type="xs" themeColor="textFaint">
+          {deck.cardCount} card{deck.cardCount === 1 ? '' : 's'}
+        </ThemedText>
+      </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  gear: { fontSize: 22 },
-  listContent: { padding: Spacing.three, flexGrow: 1 },
-  separator: { height: Spacing.two },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.gutter,
+    paddingBottom: Spacing.sm,
   },
-  rowText: { flex: 1, gap: 2 },
-  badge: {
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Spacing.two,
+  list: { flex: 1 },
+  listContent: { paddingHorizontal: Spacing.gutter, paddingTop: Spacing.xs, paddingBottom: Spacing.lg, flexGrow: 1 },
+  separator: { height: Spacing.md },
+  hero: {
+    borderRadius: Radius.xl,
+    padding: Spacing.lg + 2,
+    marginBottom: Spacing.xxl,
+    gap: Spacing.md,
   },
-  empty: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.two,
-    padding: Spacing.five,
+  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  heroTitle: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm + 1, flex: 1 },
+  heroHeading: { color: '#fff' },
+  heroCount: { color: 'rgba(255,255,255,0.9)' },
+  heroSub: { color: 'rgba(255,255,255,0.95)' },
+  sectionTitle: { marginBottom: Spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, padding: Spacing.lg },
+  deckIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.sm + 3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  emptyTitle: { textAlign: "center" },
-  emptyText: { textAlign: "center" },
-  actions: {
-    flexDirection: "row",
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  actionBtn: { flex: 1 },
+  rowText: { flex: 1, gap: 3 },
+  rowStatus: { alignItems: 'flex-end', gap: Spacing.xs },
+  empty: { alignItems: 'center', gap: Spacing.sm },
+  emptyTitle: { textAlign: 'center' },
+  emptyText: { textAlign: 'center' },
+  actions: { flexDirection: 'row', gap: Spacing.md },
+  flex: { flex: 1 },
 });
