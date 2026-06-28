@@ -49,7 +49,9 @@
           "photosPermission": "Repaso reads text from photos you choose to turn into flashcards.",
           "cameraPermission": "Repaso reads text from photos you take to turn into flashcards."
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": false,

@@ -9,13 +9,24 @@
  * Deploy with EAS Hosting (`npx expo export -p web` + `eas deploy`) so the
  * route runs server-side; in local dev it is served by the Expo dev server.
  *
- * TODO(monetization Phase 2/3): verify the caller's Supabase token + entitlement
- * and enforce the free monthly generation quota before calling OpenAI. The
- * client gate is UX only — see docs/plans/monetization-and-sync.md.
+ * Spend gates (in addition to the IP rate limiter + the OpenAI spend cap): a
+ * per-device free-generation quota in Upstash KV, and — once the free allowance
+ * is spent — a RevenueCat `unlimited` entitlement check for unlimited use. Both
+ * live in `server-proxy.ts`; the client gate is UX only. See
+ * docs/plans/mvp-monetization.md.
  */
 
-import { MAX_CARDS_PER_DECK } from '@/lib/limits';
-import { clientIp, json, OPENAI_CHAT_URL, rateLimited } from '@/lib/server-proxy';
+import { FREE_GENERATIONS, MAX_CARDS_PER_DECK } from '@/lib/limits';
+import {
+  clientIp,
+  getFreeGenCount,
+  incrementFreeGen,
+  json,
+  kvConfigured,
+  OPENAI_CHAT_URL,
+  rateLimited,
+  requirePro,
+} from '@/lib/server-proxy';
 
 const MAX_INPUT_CHARS = 4000;
 
@@ -104,6 +115,8 @@ export async function POST(request: Request): Promise<Response> {
     input?: unknown;
     outputStyle?: unknown;
     max?: unknown;
+    deviceId?: unknown;
+    appUserId?: unknown;
   };
   try {
     payload = await request.json();
@@ -118,12 +131,36 @@ export async function POST(request: Request): Promise<Response> {
   const outputStyle: OutputStyle = payload.outputStyle === 'words' ? 'words' : 'sentences';
   const requestedMax = typeof payload.max === 'number' ? Math.floor(payload.max) : MAX_CARDS_PER_DECK;
   const max = Math.max(1, Math.min(requestedMax, MAX_CARDS_PER_DECK));
+  const deviceId = typeof payload.deviceId === 'string' ? payload.deviceId : '';
+  const appUserId = typeof payload.appUserId === 'string' ? payload.appUserId : '';
 
   if (!knownLang || !targetLang) {
     return json({ error: 'knownLang and targetLang are required.' }, 400);
   }
   if (!input) {
     return json({ error: 'Provide something to generate from.' }, 400);
+  }
+
+  // Free-generation quota. Fail CLOSED: without the KV store the limit can't be
+  // enforced, so refuse rather than serve ungated generation. When the free
+  // allowance is spent, allow only if the caller has the Pro entitlement —
+  // checked just here, not on every free generation. A successful free generation
+  // is counted after OpenAI returns ≥1 card (so errors/empties don't count).
+  if (!kvConfigured()) {
+    return json({ error: 'Server is missing the quota store configuration.' }, 500);
+  }
+  if (!deviceId) {
+    return json({ error: 'Missing device id.' }, 400);
+  }
+  let countFreeGeneration = false;
+  const used = await getFreeGenCount(deviceId);
+  if (used >= FREE_GENERATIONS) {
+    const pro = await requirePro(appUserId);
+    if (!pro) {
+      return json({ error: 'Free limit reached.', code: 'limit_reached' }, 402);
+    }
+  } else {
+    countFreeGeneration = true;
   }
 
   const model = process.env.OPENAI_MODEL || 'gpt-5.4-nano';
@@ -182,6 +219,12 @@ export async function POST(request: Request): Promise<Response> {
   const omitted = (Array.isArray(parsed.omitted) ? parsed.omitted : [])
     .map((o) => String(o ?? '').trim())
     .filter(Boolean);
+
+  // Count the free generation only on success (≥1 card). Best-effort: a KV hiccup
+  // must not fail a generation the user already received.
+  if (countFreeGeneration && cards.length > 0) {
+    await incrementFreeGen(deviceId).catch((e) => console.error('freegen incr failed', e));
+  }
 
   return json({ cards, omitted });
 }

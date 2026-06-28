@@ -4,7 +4,9 @@
  */
 
 import { PROXY_URL } from './config';
+import { getDeviceId } from './device-id';
 import { MAX_CARDS_PER_DECK } from './limits';
+import { getAppUserId } from './revenuecat';
 
 export interface DraftCard {
   front: string;
@@ -40,7 +42,14 @@ export interface GenerateResult {
   omitted: string[];
 }
 
-export class GenerationError extends Error {}
+export class GenerationError extends Error {
+  /** True when generation was blocked by the free quota — route to the paywall. */
+  readonly paywall: boolean;
+  constructor(message: string, options?: { paywall?: boolean }) {
+    super(message);
+    this.paywall = options?.paywall ?? false;
+  }
+}
 
 export async function generateCards(opts: GenerateOptions): Promise<GenerateResult> {
   const input = opts.input.trim();
@@ -51,6 +60,14 @@ export async function generateCards(opts: GenerateOptions): Promise<GenerateResu
   const max = Math.max(1, Math.min(opts.max ?? MAX_CARDS_PER_DECK, MAX_CARDS_PER_DECK));
 
   const url = `${PROXY_URL}/api/generate`;
+
+  // The server keys the free quota on the device id and gates unlimited use on
+  // the RevenueCat app-user-id; getAppUserId is best-effort (empty if the SDK
+  // isn't configured in this build).
+  const [deviceId, appUserId] = await Promise.all([
+    getDeviceId(),
+    getAppUserId().catch(() => ''),
+  ]);
 
   let res: Response;
   try {
@@ -63,6 +80,8 @@ export async function generateCards(opts: GenerateOptions): Promise<GenerateResu
         input,
         outputStyle: opts.outputStyle,
         max,
+        deviceId,
+        appUserId,
       }),
     });
   } catch {
@@ -70,6 +89,11 @@ export async function generateCards(opts: GenerateOptions): Promise<GenerateResu
   }
 
   if (!res.ok) {
+    if (res.status === 402) {
+      throw new GenerationError('You’ve used all your free generations this month.', {
+        paywall: true,
+      });
+    }
     const detail = await res.text().catch(() => '');
     if (res.status === 429) throw new GenerationError('Rate limited. Please wait a moment and try again.');
     throw new GenerationError(detail || `Generation failed (HTTP ${res.status}).`);

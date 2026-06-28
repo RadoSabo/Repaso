@@ -2,7 +2,7 @@ import { desc, eq, sql } from 'drizzle-orm';
 
 import { scheduleAfterReview } from '@/lib/scheduling';
 import { db } from './client';
-import { cards, decks, type Card, type NewCard } from './schema';
+import { cards, decks, type Card, type Deck, type NewCard } from './schema';
 
 export const nowSec = () => Math.floor(Date.now() / 1000);
 
@@ -157,6 +157,19 @@ export function deleteCard(id: number) {
 /** All cards in a deck (a review session shuffles these). */
 export function getDeckCards(deckId: number): Card[] {
   return db.select().from(cards).where(eq(cards.deckId, deckId)).all();
+}
+
+/** Every deck with its cards — used by the export/import data transfer. */
+export function getAllDecksWithCards(): { deck: Deck; cards: Card[] }[] {
+  return db
+    .select()
+    .from(decks)
+    .orderBy(desc(decks.createdAt))
+    .all()
+    .map((deck) => ({
+      deck,
+      cards: db.select().from(cards).where(eq(cards.deckId, deck.id)).orderBy(cards.createdAt).all(),
+    }));
 }
 
 /**

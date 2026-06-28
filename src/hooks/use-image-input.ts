@@ -20,7 +20,10 @@ export interface ImageInput {
   fromLibrary: () => void;
 }
 
-export function useImageInput(onText: (text: string) => void): ImageInput {
+export function useImageInput(
+  onText: (text: string) => void,
+  onPaywall?: () => void,
+): ImageInput {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,12 +41,13 @@ export function useImageInput(onText: (text: string) => void): ImageInput {
         if (text) onText(text);
         else setError('No readable text found in that image.');
       } catch (e) {
-        setError(e instanceof ImageTextError ? e.message : 'Reading the image failed.');
+        if (e instanceof ImageTextError && e.paywall) onPaywall?.();
+        else setError(e instanceof ImageTextError ? e.message : 'Reading the image failed.');
       } finally {
         setLoading(false);
       }
     },
-    [onText],
+    [onText, onPaywall],
   );
 
   const fromCamera = useCallback(async () => {

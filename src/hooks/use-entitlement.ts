@@ -1,8 +1,8 @@
 /**
  * Single source of truth for "is this user a Pro subscriber?" — the seam that
  * the whole app reads when deciding whether to unlock paid features (image and
- * voice input). Today it is a stub; the real implementation arrives with the
- * monetization plan (see `docs/plans/monetization-and-sync.md`).
+ * voice input). Backed by the live RevenueCat entitlement (see
+ * `src/lib/revenuecat.ts`); see the MVP plan in `docs/plans/mvp-monetization.md`.
  *
  * IMPORTANT: this client flag only governs what the UI *offers*. It is never a
  * security boundary — the generation/transcription/vision proxy routes are the
@@ -10,15 +10,15 @@
  * spending on OpenAI (see the `TODO(monetization Phase 2/3)` markers in
  * `src/app/api/*`).
  */
+import { useSyncExternalStore } from 'react';
+
+import { hasUnlimitedEntitlement, subscribeEntitlement } from '@/lib/revenuecat';
 
 /**
- * In development every build is treated as Pro so the team can exercise the paid
- * features without a subscription. `__DEV__` is guaranteed `false` in release
- * builds (TestFlight / App Store), so no real user is ever accidentally Pro.
- *
- * TODO(monetization Phase 3): OR this with the live RevenueCat entitlement, e.g.
- *   `__DEV__ || rcEntitlements.active['unlimited'] != null`.
+ * Pro tracks the live RevenueCat entitlement. There is no developer bypass: in
+ * dev you become Pro the same way a user does — by purchasing through the
+ * RevenueCat Test Store — so the client and the server always agree.
  */
 export function useEntitlement(): { isPro: boolean } {
-  return { isPro: __DEV__ };
+  return { isPro: useSyncExternalStore(subscribeEntitlement, hasUnlimitedEntitlement) };
 }
