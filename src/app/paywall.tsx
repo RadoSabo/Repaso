@@ -33,10 +33,10 @@ const HERO_TILE = 74;
 function describePackage(
   pkg: PurchasesPackage,
   t: TFunction,
-): { title: string; suffix: string; badge?: string } {
+): { title: string; suffix: string } {
   switch (pkg.packageType) {
     case 'ANNUAL':
-      return { title: t('paywall.annual'), suffix: t('paywall.perYear'), badge: t('paywall.monthsFree') };
+      return { title: t('paywall.annual'), suffix: t('paywall.perYear') };
     case 'MONTHLY':
       return { title: t('paywall.monthly'), suffix: t('paywall.perMonth') };
     default:
@@ -127,7 +127,7 @@ export default function PaywallScreen() {
 
       <BottomBar>
         {packages.map((pkg) => {
-          const { title, suffix, badge } = describePackage(pkg, t);
+          const { title, suffix } = describePackage(pkg, t);
           const isActive = active?.identifier === pkg.identifier;
           return (
             <Pressable
@@ -156,14 +156,7 @@ export default function PaywallScreen() {
                 ]}
               />
               <View style={styles.planText}>
-                <View style={styles.planTitleRow}>
-                  <ThemedText type="bodyBold">{title}</ThemedText>
-                  {badge ? (
-                    <Badge tone="brand" size="sm">
-                      {badge}
-                    </Badge>
-                  ) : null}
-                </View>
+                <ThemedText type="bodyBold">{title}</ThemedText>
               </View>
               <ThemedText type="bodyBold">
                 {pkg.product.priceString}
@@ -269,7 +262,6 @@ const styles = StyleSheet.create({
   },
   radio: { width: 22, height: 22, borderRadius: 11 },
   planText: { flex: 1 },
-  planTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   assurance: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm - 1 },
   links: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
 });
