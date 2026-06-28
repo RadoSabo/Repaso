@@ -17,7 +17,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 /** Horizontal travel needed to fire an action on release. */
 const TRIGGER = 96;
-/** Drag distance over which an action panel fades fully in. */
+/** Drag distance over which an action background fades fully in. */
 const REVEAL = 56;
 
 interface SwipeableCardRowProps {
@@ -30,8 +30,9 @@ interface SwipeableCardRowProps {
 
 /**
  * Wraps a card row with horizontal swipe actions: swipe right reveals and fires
- * Edit, swipe left reveals and fires Delete. A short horizontal activation
- * offset lets plain taps pass through to the row beneath.
+ * Edit, swipe left reveals and fires Delete. The full row behind the card takes
+ * the action color (brand / danger) so the affordance reads clearly. A short
+ * horizontal activation offset lets plain taps pass through to the row beneath.
  */
 export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRowProps) {
   const theme = useTheme();
@@ -60,14 +61,14 @@ export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRo
   return (
     <View style={styles.wrap}>
       <Animated.View
-        style={[styles.action, styles.left, { backgroundColor: theme.brandSoft }, editStyle]}>
+        style={[styles.bg, styles.bgEdit, { backgroundColor: theme.brandSoft }, editStyle]}>
         <Icon name="pencil" size={20} color={theme.brandContrast} />
         <ThemedText type="xs" style={{ color: theme.brandContrast }}>
           Edit
         </ThemedText>
       </Animated.View>
       <Animated.View
-        style={[styles.action, styles.right, { backgroundColor: theme.dangerSoft }, deleteStyle]}>
+        style={[styles.bg, styles.bgDelete, { backgroundColor: theme.dangerSoft }, deleteStyle]}>
         <Icon name="trash" size={20} color={theme.dangerOn} />
         <ThemedText type="xs" style={{ color: theme.dangerOn }}>
           Delete
@@ -83,16 +84,16 @@ export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRo
 
 const styles = StyleSheet.create({
   wrap: { borderRadius: Radius.lg, overflow: 'hidden' },
-  action: {
+  bg: {
     position: 'absolute',
     top: 0,
+    left: 0,
+    right: 0,
     bottom: 0,
-    width: 96,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: Spacing.xs + 2,
   },
-  left: { left: 0 },
-  right: { right: 0 },
+  bgEdit: { justifyContent: 'flex-start', paddingLeft: Spacing.lg },
+  bgDelete: { justifyContent: 'flex-end', paddingRight: Spacing.lg },
 });
