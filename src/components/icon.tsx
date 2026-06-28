@@ -28,6 +28,7 @@ export type IconName =
   | 'stop'
   | 'camera'
   | 'trash'
+  | 'pencil'
   | 'x'
   | 'lightbulb'
   | 'lock'
@@ -66,6 +67,7 @@ const GLYPHS: Record<IconName, Glyph> = {
   stop: { set: 'ion', name: 'stop' },
   camera: { set: 'ion', name: 'camera' },
   trash: { set: 'ion', name: 'trash' },
+  pencil: { set: 'ion', name: 'pencil' },
   x: { set: 'ion', name: 'close' },
   lightbulb: { set: 'ion', name: 'bulb' },
   lock: { set: 'ion', name: 'lock-closed' },

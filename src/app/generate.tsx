@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { BottomBar } from '@/components/bottom-bar';
@@ -39,6 +39,8 @@ const TOPIC_SUGGESTIONS: readonly { label: string; prompt: string }[] = [
   { label: 'Cooking', prompt: 'Cooking and kitchen vocabulary' },
   { label: 'Body parts', prompt: 'Common parts of the body' },
 ];
+
+const KAV_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : undefined;
 
 function formatSeconds(total: number): string {
   const minutes = Math.floor(total / 60);
@@ -157,6 +159,7 @@ export default function GenerateScreen() {
   if (drafts) {
     return (
       <ThemedView style={styles.container}>
+        <KeyboardAvoidingView style={styles.flex} behavior={KAV_BEHAVIOR}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <ThemedText type="sm" themeColor="textSecondary">
             Review and edit each card before saving. Remove any you don’t want.
@@ -221,6 +224,7 @@ export default function GenerateScreen() {
             />
           </View>
         </BottomBar>
+        </KeyboardAvoidingView>
       </ThemedView>
     );
   }
@@ -230,6 +234,7 @@ export default function GenerateScreen() {
   // --- Input stage ---
   return (
     <ThemedView style={styles.container}>
+      <KeyboardAvoidingView style={styles.flex} behavior={KAV_BEHAVIOR}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <SegmentedControl
           segments={OUTPUT_SEGMENTS}
@@ -350,6 +355,7 @@ export default function GenerateScreen() {
           onPress={handleGenerate}
         />
       </BottomBar>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }

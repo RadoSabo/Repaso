@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
@@ -33,7 +33,9 @@ export function DeckForm({
   const canSubmit = name.trim().length > 0 && knownLang.trim() && targetLang.trim();
 
   return (
-    <View style={styles.flex}>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <TextField
           label="Deck name"
@@ -81,7 +83,7 @@ export function DeckForm({
           </ThemedText>
         ) : null}
       </BottomBar>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

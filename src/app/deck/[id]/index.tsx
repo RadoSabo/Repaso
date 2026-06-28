@@ -5,10 +5,11 @@ import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { SwipeableCardRow } from '@/components/swipeable-card-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { cardsForDeckQuery, deckByIdQuery, deleteDeck } from '@/db/queries';
+import { cardsForDeckQuery, deckByIdQuery, deleteCard, deleteDeck } from '@/db/queries';
 import { cancelReminder } from '@/lib/notifications';
 import { dueLabel, isDue } from '@/lib/scheduling';
 
@@ -23,6 +24,13 @@ export default function DeckDetailScreen() {
 
   const cardCount = cards?.length ?? 0;
   const due = deck ? isDue(deck.nextReviewAt, cardCount) : false;
+
+  function confirmDeleteCard(cardId: number, front: string) {
+    Alert.alert('Delete card?', `"${front}" will be removed from the deck.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteCard(cardId) },
+    ]);
+  }
 
   function confirmDelete() {
     Alert.alert('Delete deck?', `"${deck?.name}" and all its cards will be removed.`, [
@@ -93,14 +101,18 @@ export default function DeckDetailScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <Card variant="sunk" padding="sm" onPress={() => router.push(`/card/${item.id}`)}>
-            <ThemedText type="bodyBold" numberOfLines={1} style={styles.cardFront}>
-              {item.front}
-            </ThemedText>
-            <ThemedText type="body" themeColor="textMuted" numberOfLines={1}>
-              {item.back}
-            </ThemedText>
-          </Card>
+          <SwipeableCardRow
+            onEdit={() => router.push(`/card/${item.id}`)}
+            onDelete={() => confirmDeleteCard(item.id, item.front)}>
+            <Card variant="sunk" padding="sm" onPress={() => router.push(`/card/${item.id}`)}>
+              <ThemedText type="bodyBold" numberOfLines={1} style={styles.cardFront}>
+                {item.front}
+              </ThemedText>
+              <ThemedText type="body" themeColor="textMuted" numberOfLines={1}>
+                {item.back}
+              </ThemedText>
+            </Card>
+          </SwipeableCardRow>
         )}
       />
 
