@@ -33,7 +33,7 @@ const PEEK_SCALE = 0.96;
 /** Strongest the green/red answer tint gets at the commit threshold. */
 const TINT_MAX_OPACITY = 0.55;
 /** Shared hint shown on both faces. */
-const FLIP_HINT = 'Tap to flip · swipe to answer';
+const FLIP_HINT = 'Tap to flip';
 
 export interface SwipeableFlashcardHandle {
   /** Fling the card off-screen and resolve the answer (used by the answer buttons). */

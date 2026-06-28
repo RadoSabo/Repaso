@@ -43,7 +43,7 @@ export function Flashcard({ card, deck, flipped, hint, style }: FlashcardProps) 
       {hint ? (
         <View style={styles.hint}>
           <Icon name="hand-tap" size={16} color={theme.textFaint} />
-          <ThemedText type="sm" themeColor="textFaint">
+          <ThemedText type="sm" themeColor="textFaint" numberOfLines={1}>
             {hint}
           </ThemedText>
         </View>
