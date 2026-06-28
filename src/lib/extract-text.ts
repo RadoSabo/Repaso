@@ -8,8 +8,16 @@
  */
 
 import { PROXY_URL } from './config';
+import { getAppUserId } from './revenuecat';
 
-export class ImageTextError extends Error {}
+export class ImageTextError extends Error {
+  /** True when the server requires Repaso Pro — route to the paywall. */
+  readonly paywall: boolean;
+  constructor(message: string, options?: { paywall?: boolean }) {
+    super(message);
+    this.paywall = options?.paywall ?? false;
+  }
+}
 
 export interface ExtractTextOptions {
   /** Base64-encoded image data (no data-URL prefix), from expo-image-picker. */
@@ -20,18 +28,23 @@ export interface ExtractTextOptions {
 
 /** Sends an image to the proxy and returns the text the model read from it. */
 export async function extractTextFromImage({ base64, mimeType }: ExtractTextOptions): Promise<string> {
+  const appUserId = await getAppUserId().catch(() => '');
+
   let res: Response;
   try {
     res = await fetch(`${PROXY_URL}/api/extract-text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64: base64, mimeType: mimeType ?? 'image/jpeg' }),
+      body: JSON.stringify({ imageBase64: base64, mimeType: mimeType ?? 'image/jpeg', appUserId }),
     });
   } catch {
     throw new ImageTextError('Could not reach the image server. Check your connection.');
   }
 
   if (!res.ok) {
+    if (res.status === 402) {
+      throw new ImageTextError('Repaso Pro is required for photo input.', { paywall: true });
+    }
     if (res.status === 429) {
       throw new ImageTextError('Rate limited. Please wait a moment and try again.');
     }

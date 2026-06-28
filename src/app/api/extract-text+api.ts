@@ -7,12 +7,12 @@
  *   OPENAI_API_KEY    (required)  secret key, server-side only
  *   OPENAI_VISION_MODEL (optional) defaults to OPENAI_MODEL, then "gpt-5.4-nano"
  *
- * TODO(monetization Phase 2/3): image input is Pro-only — verify the caller's
- * Supabase token + "unlimited" entitlement here before calling OpenAI. The
- * client gate is UX only. See docs/plans/monetization-and-sync.md.
+ * Image input is Pro-only: this route confirms the caller's RevenueCat
+ * `unlimited` entitlement (via `requirePro`) before any OpenAI spend. The client
+ * gate is UX only. See docs/plans/mvp-monetization.md.
  */
 
-import { clientIp, json, OPENAI_CHAT_URL, rateLimited } from '@/lib/server-proxy';
+import { clientIp, json, OPENAI_CHAT_URL, rateLimited, requirePro } from '@/lib/server-proxy';
 
 // Cap the decoded image to keep payloads and vision cost bounded (~8 MB of
 // base64 ≈ a high-res phone photo).
@@ -34,11 +34,16 @@ export async function POST(request: Request): Promise<Response> {
     return json({ error: 'Too many requests.' }, 429);
   }
 
-  let payload: { imageBase64?: unknown; mimeType?: unknown };
+  let payload: { imageBase64?: unknown; mimeType?: unknown; appUserId?: unknown };
   try {
     payload = await request.json();
   } catch {
     return json({ error: 'Invalid JSON body.' }, 400);
+  }
+
+  const appUserId = typeof payload.appUserId === 'string' ? payload.appUserId : '';
+  if (!(await requirePro(appUserId))) {
+    return json({ error: 'Repaso Pro required.', code: 'pro_required' }, 402);
   }
 
   const imageBase64 = typeof payload.imageBase64 === 'string' ? payload.imageBase64 : '';

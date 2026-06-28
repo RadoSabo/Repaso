@@ -14,6 +14,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { countCardsInDeck, createCards, createDeck, getDeck } from '@/db/queries';
 import { useEntitlement } from '@/hooks/use-entitlement';
+import { useGenerationQuota } from '@/hooks/use-generation-quota';
 import { useImageInput } from '@/hooks/use-image-input';
 import { useTheme } from '@/hooks/use-theme';
 import { useVoiceInput } from '@/hooks/use-voice-input';
@@ -48,6 +49,7 @@ export default function GenerateScreen() {
   const insets = useSafeAreaInsets();
   const settings = useSettings();
   const { isPro } = useEntitlement();
+  const quota = useGenerationQuota(isPro);
 
   const [deckName, setDeckName] = useState('');
   const [knownLang, setKnownLang] = useState(existingDeck?.knownLang ?? settings.knownLang);
@@ -64,15 +66,15 @@ export default function GenerateScreen() {
   // combine several captures.
   const fillField = (text: string) =>
     setInputText((prev) => (prev.trim() ? `${prev.trim()}\n${text}` : text));
-  const voice = useVoiceInput(fillField);
-  const image = useImageInput(fillField);
+  const goToPaywall = () => router.push('/paywall');
+  const voice = useVoiceInput(fillField, goToPaywall);
+  const image = useImageInput(fillField, goToPaywall);
 
   const capturing = voice.phase !== 'idle' || image.loading;
   const captureError = voice.error ?? image.error;
 
   function showProUpsell() {
-    // TODO(monetization Phase 3): router.push('/paywall') once the paywall exists.
-    Alert.alert('Repaso Pro', 'Photo and voice input are part of Repaso Pro — coming soon.');
+    router.push('/paywall');
   }
 
   function handleRecordPress() {
@@ -96,6 +98,11 @@ export default function GenerateScreen() {
   }
 
   async function handleGenerate() {
+    // Free allowance spent → straight to the paywall (server enforces this too).
+    if (!quota.canGenerate) {
+      router.push('/paywall');
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -114,7 +121,12 @@ export default function GenerateScreen() {
         // ids stay unique and stable, keeping each card's TextInput instance.
         setDrafts(cards.map((c, i) => ({ ...c, id: i })));
       }
+      quota.refresh();
     } catch (e) {
+      if (e instanceof GenerationError && e.paywall) {
+        router.push('/paywall');
+        return;
+      }
       setError(e instanceof GenerationError ? e.message : 'Something went wrong.');
     } finally {
       setLoading(false);
@@ -310,6 +322,13 @@ export default function GenerateScreen() {
               : `${usedCount} of ${MAX_CARDS_PER_DECK} cards used — up to ${remaining} more.`
             : `Up to ${MAX_CARDS_PER_DECK} cards per deck.`}
         </ThemedText>
+
+        {!isPro ? (
+          <ThemedText type="small" themeColor={quota.remaining === 0 ? 'danger' : 'textSecondary'}>
+            {quota.remaining} free {quota.remaining === 1 ? 'generation' : 'generations'} left this
+            month — unlimited with Repaso Pro.
+          </ThemedText>
+        ) : null}
       </ScrollView>
 
       <View style={[styles.footer, insetStyle, { borderTopColor: theme.border }]}>

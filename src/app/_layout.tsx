@@ -1,17 +1,28 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { WebUnavailable } from '@/components/web-unavailable';
 import { Colors } from '@/constants/theme';
 import { initDatabase } from '@/db/client';
 import { useResolvedScheme } from '@/hooks/use-theme';
+import { configureRevenueCat } from '@/lib/revenuecat';
 
+// Repaso is mobile-only. The deployed web build serves just the API routes and
+// the Terms / Privacy pages (all `+api.ts` handlers, which run outside this React
+// tree); every app screen is replaced by a notice. Native runs the real app.
 export default function RootLayout() {
-  // Bootstrap the SQLite schema once, synchronously, before first render.
+  return Platform.OS === 'web' ? <WebUnavailable /> : <NativeRoot />;
+}
+
+function NativeRoot() {
+  // Bootstrap the SQLite schema and the Purchases SDK once, before first render.
   useState(() => {
     initDatabase();
+    configureRevenueCat();
     return true;
   });
 
@@ -43,6 +54,10 @@ export default function RootLayout() {
             <Stack.Screen
               name="generate"
               options={{ title: 'Generate cards', presentation: 'modal' }}
+            />
+            <Stack.Screen
+              name="paywall"
+              options={{ title: 'Repaso Pro', presentation: 'modal' }}
             />
             <Stack.Screen name="settings" options={{ title: 'Settings' }} />
           </Stack>

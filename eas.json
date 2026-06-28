@@ -14,7 +14,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_PROXY_URL": "https://repaso.expo.app"
+        "EXPO_PUBLIC_PROXY_URL": "https://repaso.expo.app",
+        "EXPO_PUBLIC_REVENUECAT_KEY_IOS": "appl_REPLACE",
+        "EXPO_PUBLIC_REVENUECAT_KEY_ANDROID": "goog_REPLACE"
       }
     },
     "production": {
@@ -23,7 +25,9 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_PROXY_URL": "https://repaso.expo.app"
+        "EXPO_PUBLIC_PROXY_URL": "https://repaso.expo.app",
+        "EXPO_PUBLIC_REVENUECAT_KEY_IOS": "appl_REPLACE",
+        "EXPO_PUBLIC_REVENUECAT_KEY_ANDROID": "goog_REPLACE"
       }
     }
   },

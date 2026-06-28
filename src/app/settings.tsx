@@ -1,11 +1,13 @@
-import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { type ReactNode, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Button } from '@/components/button';
 import { SegmentedControl, type Segment } from '@/components/segmented-control';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { DeckTransferError, exportDecks, importDecks } from '@/lib/deck-transfer';
 import { useSettings, type ThemePreference } from '@/store/settings';
 
 const THEME_OPTIONS: readonly Segment<ThemePreference>[] = [
@@ -16,6 +18,32 @@ const THEME_OPTIONS: readonly Segment<ThemePreference>[] = [
 
 export default function SettingsScreen() {
   const s = useSettings();
+  const [transferBusy, setTransferBusy] = useState(false);
+
+  async function handleExport() {
+    setTransferBusy(true);
+    try {
+      await exportDecks();
+    } catch (e) {
+      Alert.alert('Export failed', e instanceof DeckTransferError ? e.message : 'Something went wrong.');
+    } finally {
+      setTransferBusy(false);
+    }
+  }
+
+  async function handleImport() {
+    setTransferBusy(true);
+    try {
+      const count = await importDecks();
+      if (count > 0) {
+        Alert.alert('Import complete', `Added ${count} ${count === 1 ? 'deck' : 'decks'}.`);
+      }
+    } catch (e) {
+      Alert.alert('Import failed', e instanceof DeckTransferError ? e.message : 'Something went wrong.');
+    } finally {
+      setTransferBusy(false);
+    }
+  }
 
   return (
     <ThemedView style={{ flex: 1 }}>
@@ -39,6 +67,23 @@ export default function SettingsScreen() {
               <TextField label="I'm learning" value={s.targetLang} onChangeText={s.setTargetLang} />
             </View>
           </View>
+        </Section>
+
+        <Section
+          title="Your data"
+          subtitle="Decks live only on this device. Export a backup you can import on a new device — a reinstall loses them otherwise.">
+          <Button
+            title="Export decks"
+            variant="secondary"
+            loading={transferBusy}
+            onPress={handleExport}
+          />
+          <Button
+            title="Import decks"
+            variant="secondary"
+            disabled={transferBusy}
+            onPress={handleImport}
+          />
         </Section>
       </ScrollView>
     </ThemedView>

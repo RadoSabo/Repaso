@@ -29,7 +29,10 @@ export interface VoiceInput {
   toggle: () => void;
 }
 
-export function useVoiceInput(onText: (text: string) => void): VoiceInput {
+export function useVoiceInput(
+  onText: (text: string) => void,
+  onPaywall?: () => void,
+): VoiceInput {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(recorder);
   const [phase, setPhase] = useState<VoicePhase>('idle');
@@ -61,12 +64,13 @@ export function useVoiceInput(onText: (text: string) => void): VoiceInput {
       if (text) onText(text);
       else setError('Could not make out any speech. Try again.');
     } catch (e) {
-      setError(e instanceof TranscriptionError ? e.message : 'Transcription failed.');
+      if (e instanceof TranscriptionError && e.paywall) onPaywall?.();
+      else setError(e instanceof TranscriptionError ? e.message : 'Transcription failed.');
     } finally {
       setPhase('idle');
       finalizing.current = false;
     }
-  }, [recorder, onText, clearTimer]);
+  }, [recorder, onText, onPaywall, clearTimer]);
 
   const start = useCallback(async () => {
     setError(null);

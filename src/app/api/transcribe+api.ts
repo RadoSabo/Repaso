@@ -9,12 +9,12 @@
  *   OPENAI_API_KEY        (required)  secret key, server-side only
  *   OPENAI_TRANSCRIBE_MODEL (optional) defaults to "gpt-4o-mini-transcribe"
  *
- * TODO(monetization Phase 2/3): voice input is Pro-only — verify the caller's
- * Supabase token + "unlimited" entitlement here before calling OpenAI. The
- * client gate is UX only. See docs/plans/monetization-and-sync.md.
+ * Voice input is Pro-only: this route confirms the caller's RevenueCat
+ * `unlimited` entitlement (via `requirePro`) before any OpenAI spend. The client
+ * gate is UX only. See docs/plans/mvp-monetization.md.
  */
 
-import { clientIp, json, rateLimited } from '@/lib/server-proxy';
+import { clientIp, json, rateLimited, requirePro } from '@/lib/server-proxy';
 
 const OPENAI_TRANSCRIBE_URL = 'https://api.openai.com/v1/audio/transcriptions';
 // A 60s recording is ~1 MB (~1.4M base64 chars); OpenAI accepts up to 25 MB.
@@ -34,11 +34,16 @@ export async function POST(request: Request): Promise<Response> {
     return json({ error: 'Too many requests.' }, 429);
   }
 
-  let payload: { audioBase64?: unknown; mimeType?: unknown };
+  let payload: { audioBase64?: unknown; mimeType?: unknown; appUserId?: unknown };
   try {
     payload = await request.json();
   } catch {
     return json({ error: 'Invalid JSON body.' }, 400);
+  }
+
+  const appUserId = typeof payload.appUserId === 'string' ? payload.appUserId : '';
+  if (!(await requirePro(appUserId))) {
+    return json({ error: 'Repaso Pro required.', code: 'pro_required' }, 402);
   }
 
   const audioBase64 = typeof payload.audioBase64 === 'string' ? payload.audioBase64 : '';
