@@ -18,11 +18,14 @@ export function DeckForm({
   initial,
   submitLabel,
   notice,
+  lockLanguages = false,
   onSubmit,
 }: {
   initial: DeckFormValues;
   submitLabel: string;
   notice?: string;
+  /** Prevent changing the deck's languages (used once a deck already has cards). */
+  lockLanguages?: boolean;
   onSubmit: (values: DeckFormValues) => void;
 }) {
   const [name, setName] = useState(initial.name);
@@ -50,21 +53,30 @@ export function DeckForm({
           onChangeText={setDescription}
           placeholder="What is this deck for?"
         />
-        <View style={styles.langRow}>
-          <TextField
-            containerStyle={styles.langCol}
-            label="I know"
-            value={knownLang}
-            onChangeText={setKnownLang}
-            placeholder="English"
-          />
-          <TextField
-            containerStyle={styles.langCol}
-            label="I'm learning"
-            value={targetLang}
-            onChangeText={setTargetLang}
-            placeholder="Spanish"
-          />
+        <View>
+          <View style={styles.langRow}>
+            <TextField
+              containerStyle={styles.langCol}
+              label="I know"
+              value={knownLang}
+              onChangeText={setKnownLang}
+              placeholder="English"
+              editable={!lockLanguages}
+            />
+            <TextField
+              containerStyle={styles.langCol}
+              label="I'm learning"
+              value={targetLang}
+              onChangeText={setTargetLang}
+              placeholder="Spanish"
+              editable={!lockLanguages}
+            />
+          </View>
+          {lockLanguages ? (
+            <ThemedText type="sm" themeColor="textMuted" style={styles.langNote}>
+              Languages can’t be changed once a deck has cards.
+            </ThemedText>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -92,5 +104,6 @@ const styles = StyleSheet.create({
   content: { padding: Spacing.gutter, gap: Spacing.xl },
   langRow: { flexDirection: 'row', gap: Spacing.md },
   langCol: { flex: 1 },
+  langNote: { marginTop: Spacing.sm },
   notice: { textAlign: 'center' },
 });

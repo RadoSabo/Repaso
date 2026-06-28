@@ -143,20 +143,22 @@ function DeckRow({ deck, onPress }: { deck: DeckSummary; onPress: () => void }) 
         <ThemedText type="h3" numberOfLines={1}>
           {deck.name}
         </ThemedText>
-        <View style={styles.rowMeta}>
-          <ThemedText type="sm" themeColor="textMuted" numberOfLines={1}>
-            {deck.knownLang} → {deck.targetLang} · {deck.cardCount} card
-            {deck.cardCount === 1 ? '' : 's'}
-          </ThemedText>
-        </View>
-      </View>
-      {due ? (
-        <Badge tone="brand">Due</Badge>
-      ) : (
-        <ThemedText type="sm" themeColor="textMuted">
-          {deck.cardCount > 0 ? dueLabel(deck.nextReviewAt) : '0 cards'}
+        <ThemedText type="sm" themeColor="textMuted" numberOfLines={1}>
+          {deck.knownLang} → {deck.targetLang}
         </ThemedText>
-      )}
+      </View>
+      <View style={styles.rowStatus}>
+        {due ? (
+          <Badge tone="brand">Due</Badge>
+        ) : deck.cardCount > 0 ? (
+          <ThemedText type="sm" themeColor="textMuted">
+            {dueLabel(deck.nextReviewAt)}
+          </ThemedText>
+        ) : null}
+        <ThemedText type="xs" themeColor="textFaint">
+          {deck.cardCount} card{deck.cardCount === 1 ? '' : 's'}
+        </ThemedText>
+      </View>
     </Card>
   );
 }
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rowText: { flex: 1, gap: 3 },
-  rowMeta: { flexDirection: 'row', alignItems: 'center' },
+  rowStatus: { alignItems: 'flex-end', gap: Spacing.xs },
   empty: { alignItems: 'center', gap: Spacing.sm },
   emptyTitle: { textAlign: 'center' },
   emptyText: { textAlign: 'center' },
