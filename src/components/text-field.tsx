@@ -45,14 +45,9 @@ export function TextField({
       <View
         style={[
           styles.well,
-          {
-            backgroundColor: theme.surfaceSunk,
-            borderColor,
-            alignItems: multiline ? 'flex-start' : 'center',
-            paddingVertical: multiline ? Spacing.md : 0,
-            minHeight: multiline ? undefined : 52,
-          },
-          focused && { borderColor, shadowColor: ringColor, ...styles.ring },
+          { backgroundColor: theme.surfaceSunk, borderColor },
+          multiline ? styles.wellMultiline : styles.wellSingle,
+          focused && { shadowColor: ringColor, ...styles.ring },
         ]}>
         {prefixIcon ? (
           <Icon name={prefixIcon} size={19} color={theme.textMuted} style={styles.prefix} />
@@ -60,7 +55,7 @@ export function TextField({
         <TextInput
           placeholderTextColor={theme.textMuted}
           multiline={multiline}
-          style={[styles.input, { color: theme.text }, multiline && styles.multiline, style]}
+          style={[styles.input, { color: theme.text }, multiline ? styles.inputMultiline : styles.inputSingle, style]}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           {...rest}
@@ -85,16 +80,21 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.lg,
   },
+  wellSingle: { alignItems: 'center' },
+  wellMultiline: { alignItems: 'flex-start' },
   ring: { shadowOpacity: 1, shadowRadius: 4, shadowOffset: { width: 0, height: 0 }, elevation: 0 },
-  prefix: { marginTop: 0 },
+  prefix: { alignSelf: 'center' },
   input: {
     flex: 1,
     fontFamily: FontFamily.body,
     fontSize: 16,
-    paddingVertical: 0,
   },
-  multiline: {
-    minHeight: 80,
+  // The input owns the full height so the whole well is a tap target.
+  inputSingle: { height: 52, paddingVertical: 0 },
+  inputMultiline: {
+    minHeight: 96,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
     textAlignVertical: 'top',
     lineHeight: 23,
   },

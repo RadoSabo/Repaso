@@ -100,6 +100,28 @@ export function deleteDeck(id: number) {
   return db.delete(decks).where(eq(decks.id, id)).run();
 }
 
+/** Total number of decks. */
+export function countDecks(): number {
+  const row = db.select({ count: sql<number>`count(*)` }).from(decks).get();
+  return row?.count ?? 0;
+}
+
+/** Sentences for the deck new users start with (English → Spanish). */
+const STARTER_CARDS = [
+  { front: 'Good morning! How did you sleep?', back: '¡Buenos días! ¿Cómo dormiste?' },
+  { front: 'I would like a coffee, please.', back: 'Quisiera un café, por favor.' },
+  { front: 'Where is the train station?', back: '¿Dónde está la estación de tren?' },
+  { front: 'How much does this cost?', back: '¿Cuánto cuesta esto?' },
+  { front: 'See you tomorrow!', back: '¡Hasta mañana!' },
+];
+
+/** Creates the example deck shown on a fresh install so the app is never empty. */
+export function seedStarterDeck() {
+  const deck = createDeck({ name: 'Everyday Spanish', knownLang: 'English', targetLang: 'Spanish' });
+  createCards(deck.id, STARTER_CARDS, 'manual');
+  return deck;
+}
+
 // ---------------------------------------------------------------------------
 // Card mutations
 // ---------------------------------------------------------------------------

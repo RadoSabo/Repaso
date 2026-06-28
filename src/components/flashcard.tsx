@@ -66,8 +66,11 @@ const styles = StyleSheet.create({
   hint: {
     position: 'absolute',
     bottom: Spacing.xxl,
+    left: Spacing.lg,
+    right: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.xs + 2,
   },
 });

@@ -1,11 +1,15 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
 import { Icon, type IconName } from '@/components/icon';
 import { ProgressBar } from '@/components/progress-bar';
-import { SwipeableFlashcard } from '@/components/swipeable-flashcard';
+import {
+  SwipeableFlashcard,
+  type SwipeableFlashcardHandle,
+} from '@/components/swipeable-flashcard';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
@@ -23,6 +27,7 @@ export default function ReviewScreen() {
   const { width } = useWindowDimensions();
 
   const { deck, current, upcoming, knew, missed, total, answer } = useReviewSession(deckId);
+  const cardRef = useRef<SwipeableFlashcardHandle>(null);
 
   // Session finished (or deck had no cards).
   if (!current) {
@@ -80,6 +85,7 @@ export default function ReviewScreen() {
       <View style={styles.cardArea}>
         <View style={styles.stack}>
           <SwipeableFlashcard
+            ref={cardRef}
             key={current.id}
             card={current}
             upcoming={upcoming}
@@ -101,7 +107,7 @@ export default function ReviewScreen() {
             bg={theme.dangerSoft}
             fg={theme.dangerOn}
             chip={theme.danger}
-            onPress={() => answer(false)}
+            onPress={() => cardRef.current?.fling(false)}
           />
           <AnswerButton
             label="Got it"
@@ -109,7 +115,7 @@ export default function ReviewScreen() {
             bg={theme.successSoft}
             fg={theme.successOn}
             chip={theme.success}
-            onPress={() => answer(true)}
+            onPress={() => cardRef.current?.fling(true)}
           />
         </View>
       </BottomBar>

@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { Button } from '@/components/button';
@@ -29,14 +30,15 @@ const OUTPUT_SEGMENTS: readonly Segment<OutputStyle>[] = [
   { value: 'words', label: 'Words', icon: 'text' },
 ];
 
-const TOPIC_SUGGESTIONS = [
-  'Body parts',
-  'At the airport',
-  'Banking',
-  'Cooking',
-  'Small talk',
-  'Numbers',
-] as const;
+// Each chip drops a complete, ready-to-run instruction into the field.
+const TOPIC_SUGGESTIONS: readonly { label: string; prompt: string }[] = [
+  { label: 'Numbers', prompt: 'Numbers from 1 to 50' },
+  { label: 'At the airport', prompt: 'Vocabulary you need at the airport' },
+  { label: 'Small talk', prompt: 'Useful small talk phrases' },
+  { label: 'Banking', prompt: 'Banking and money vocabulary' },
+  { label: 'Cooking', prompt: 'Cooking and kitchen vocabulary' },
+  { label: 'Body parts', prompt: 'Common parts of the body' },
+];
 
 function formatSeconds(total: number): string {
   const minutes = Math.floor(total / 60);
@@ -102,9 +104,6 @@ export default function GenerateScreen() {
     ]);
   }
 
-  function fillTopic(topic: string) {
-    setInputText((prev) => (prev.trim() ? `${prev.trim()}, ${topic.toLowerCase()}` : topic));
-  }
 
   async function handleGenerate() {
     // Free allowance spent → straight to the paywall (server enforces this too).
@@ -173,34 +172,39 @@ export default function GenerateScreen() {
             </ThemedText>
           ) : (
             drafts.map((d, i) => (
-              <Card key={d.id} padding="md" style={styles.draft}>
-                <View style={styles.draftHeader}>
-                  <ThemedText type="h3" themeColor="textSecondary">
-                    Card {i + 1}
-                  </ThemedText>
-                  <IconButton
-                    icon="trash"
-                    variant="danger"
-                    size="sm"
-                    label={`Remove card ${i + 1}`}
-                    onPress={() => setDrafts((ds) => ds!.filter((x) => x.id !== d.id))}
+              <Animated.View
+                key={d.id}
+                layout={LinearTransition.duration(220)}
+                exiting={FadeOut.duration(180)}>
+                <Card padding="md" style={styles.draft}>
+                  <View style={styles.draftHeader}>
+                    <ThemedText type="h3" themeColor="textSecondary">
+                      Card {i + 1}
+                    </ThemedText>
+                    <IconButton
+                      icon="trash"
+                      variant="danger"
+                      size="sm"
+                      label={`Remove card ${i + 1}`}
+                      onPress={() => setDrafts((ds) => ds!.filter((x) => x.id !== d.id))}
+                    />
+                  </View>
+                  <TextField
+                    label={knownLang}
+                    value={d.front}
+                    onChangeText={(t) =>
+                      setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, front: t } : x)))
+                    }
                   />
-                </View>
-                <TextField
-                  label={knownLang}
-                  value={d.front}
-                  onChangeText={(t) =>
-                    setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, front: t } : x)))
-                  }
-                />
-                <TextField
-                  label={targetLang}
-                  value={d.back}
-                  onChangeText={(t) =>
-                    setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, back: t } : x)))
-                  }
-                />
-              </Card>
+                  <TextField
+                    label={targetLang}
+                    value={d.back}
+                    onChangeText={(t) =>
+                      setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, back: t } : x)))
+                    }
+                  />
+                </Card>
+              </Animated.View>
             ))
           )}
         </ScrollView>
@@ -262,13 +266,15 @@ export default function GenerateScreen() {
           style={styles.itemsInput}
         />
 
-        <View style={styles.chips}>
-          {TOPIC_SUGGESTIONS.map((t) => (
-            <Chip key={t} icon="sparkle" onPress={() => fillTopic(t)}>
-              {t}
-            </Chip>
-          ))}
-        </View>
+        {inputText.trim() === '' ? (
+          <View style={styles.chips}>
+            {TOPIC_SUGGESTIONS.map((t) => (
+              <Chip key={t.label} icon="sparkle" onPress={() => setInputText(t.prompt)}>
+                {t.label}
+              </Chip>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.row}>
           <InputMethodButton

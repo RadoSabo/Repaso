@@ -10,6 +10,7 @@ import { Icon, type IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
+import { countDecks, seedStarterDeck } from '@/db/queries';
 import { useTheme } from '@/hooks/use-theme';
 import { useSettings } from '@/store/settings';
 
@@ -50,6 +51,8 @@ export default function OnboardingScreen() {
   const step = STEPS[index];
 
   function finish() {
+    // Give first-time users a ready-made deck so the home screen is never empty.
+    if (countDecks() === 0) seedStarterDeck();
     setOnboarded(true);
     router.replace('/');
   }
