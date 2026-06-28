@@ -194,6 +194,8 @@ export default function GenerateScreen() {
                   <TextField
                     label={knownLang}
                     value={d.front}
+                    multiline
+                    style={styles.draftInput}
                     onChangeText={(t) =>
                       setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, front: t } : x)))
                     }
@@ -201,6 +203,8 @@ export default function GenerateScreen() {
                   <TextField
                     label={targetLang}
                     value={d.back}
+                    multiline
+                    style={styles.draftInput}
                     onChangeText={(t) =>
                       setDrafts((ds) => ds!.map((x) => (x.id === d.id ? { ...x, back: t } : x)))
                     }
@@ -367,6 +371,7 @@ const styles = StyleSheet.create({
   itemsInput: { minHeight: 120 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   draft: { gap: Spacing.md },
+  draftInput: { minHeight: 52 },
   draftHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   emptyDrafts: { paddingVertical: Spacing.xxl, textAlign: 'center' },
 });
