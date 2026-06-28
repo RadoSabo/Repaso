@@ -32,7 +32,6 @@ const OUTPUT_SEGMENTS: readonly Segment<OutputStyle>[] = [
 
 // Each chip drops a complete, ready-to-run instruction into the field.
 const TOPIC_SUGGESTIONS: readonly { label: string; prompt: string }[] = [
-  { label: 'Numbers', prompt: 'Numbers from 1 to 50' },
   { label: 'At the airport', prompt: 'Vocabulary you need at the airport' },
   { label: 'Small talk', prompt: 'Useful small talk phrases' },
   { label: 'Banking', prompt: 'Banking and money vocabulary' },
