@@ -39,7 +39,8 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Repaso uses the microphone so you can speak the words or topic you want to turn into flashcards."
+          "microphonePermission": "Repaso uses the microphone so you can speak the words or topic you want to turn into flashcards.",
+          "enableBackgroundPlayback": false
         }
       ],
       [
