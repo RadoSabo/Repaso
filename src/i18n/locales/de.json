@@ -43,12 +43,11 @@
     "cardCount_other": "{{count}} Karten"
   },
   "onboarding": {
-    "step1Title": "Wörter im Kontext lernen",
-    "step1Body": "Gib Wörter oder ein Thema ein — Repaso macht daraus echte Sätze mit Übersetzungen.",
-    "step2Title": "Tippen, sprechen oder fotografieren",
-    "step2Body": "Füge Vokabeln hinzu, indem du tippst, deine Stimme aufnimmst oder ein Foto machst.",
-    "step3Title": "Mit Wiederholung merken",
-    "step3Body": "Wir erinnern dich genau zum richtigen Zeitpunkt ans Wiederholen, damit es wirklich hängen bleibt.",
+    "steps": [
+      { "title": "Wörter im Kontext lernen", "body": "Gib Wörter oder ein Thema ein — Repaso macht daraus echte Sätze mit Übersetzungen." },
+      { "title": "Tippen, sprechen oder fotografieren", "body": "Füge Vokabeln hinzu, indem du tippst, deine Stimme aufnimmst oder ein Foto machst." },
+      { "title": "Mit Wiederholung merken", "body": "Wir erinnern dich genau zum richtigen Zeitpunkt ans Wiederholen, damit es wirklich hängen bleibt." }
+    ],
     "start": "Loslegen",
     "next": "Weiter",
     "skip": "Überspringen",
@@ -189,12 +188,11 @@
     "notice": "Jeder Stapel fasst bis zu {{max}} Karten."
   },
   "paywall": {
-    "benefit1Title": "Aus jedem Thema generieren",
-    "benefit1Body": "Tippe eine Wortliste oder beschreibe ein Thema — erhalte in Sekunden einen kompletten Stapel.",
-    "benefit2Title": "Fotografieren oder einsprechen",
-    "benefit2Body": "Mach aus einer Buchseite oder deiner Stimme direkt Karteikarten.",
-    "benefit3Title": "Unbegrenzte Generierungen",
-    "benefit3Body": "Keine täglichen Limits. Erstelle so viele Stapel, wie du brauchst.",
+    "benefits": [
+      { "title": "Aus jedem Thema generieren", "body": "Tippe eine Wortliste oder beschreibe ein Thema — erhalte in Sekunden einen kompletten Stapel." },
+      { "title": "Fotografieren oder einsprechen", "body": "Mach aus einer Buchseite oder deiner Stimme direkt Karteikarten." },
+      { "title": "Unbegrenzte Generierungen", "body": "Keine täglichen Limits. Erstelle so viele Stapel, wie du brauchst." }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "Stapel mit KI erstellen",
     "heroSub": "Schluss mit dem Tippen von Karten per Hand. Mach aus jedem Thema, Foto oder jeder Wortliste einen lernfertigen Stapel.",
@@ -254,6 +252,7 @@
     "cannotRead": "Die Aufnahme konnte nicht gelesen werden. Versuch es erneut.",
     "cannotReach": "Der Transkriptionsserver konnte nicht erreicht werden. Prüfe deine Verbindung.",
     "proRequired": "Für Spracheingabe ist Repaso Pro erforderlich.",
+    "rateLimited": "Rate-Limit erreicht. Bitte warte einen Moment und versuch es erneut.",
     "failed": "Transkription fehlgeschlagen (HTTP {{status}})."
   },
   "image": {

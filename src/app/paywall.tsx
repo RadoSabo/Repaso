@@ -52,10 +52,10 @@ export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
   const { packages, loading, busy, error, buy, restore } = usePaywall();
 
+  const benefitTexts = t('paywall.benefits', { returnObjects: true }) as Omit<Benefit, 'icon'>[];
   const benefits: readonly Benefit[] = BENEFIT_ICONS.map((icon, i) => ({
     icon,
-    title: t(`paywall.benefit${i + 1}Title`),
-    body: t(`paywall.benefit${i + 1}Body`),
+    ...benefitTexts[i],
   }));
 
   // Default to the annual package (best value) until the user picks one.
@@ -87,7 +87,7 @@ export default function PaywallScreen() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[styles.heroTile, shadows.spark]}>
-            <Icon name="sparkle" size={38} color="#fff" />
+            <Icon name="sparkle" size={38} color={theme.textOnBrand} />
           </LinearGradient>
           <Badge tone="brand" icon="crown" style={styles.heroBadge}>
             {t('paywall.pro')}
@@ -262,6 +262,6 @@ const styles = StyleSheet.create({
   },
   radio: { width: 22, height: 22, borderRadius: 11 },
   planText: { flex: 1 },
-  assurance: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm - 1 },
+  assurance: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
   links: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
 });

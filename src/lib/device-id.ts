@@ -19,27 +19,29 @@ import { Platform } from 'react-native';
 
 const KEYCHAIN_KEY = 'repaso.device-id';
 
-let cached: string | null = null;
+// Cache the in-flight promise (not the resolved value) so concurrent first
+// calls share one lookup instead of racing to generate two UUIDs.
+let pending: Promise<string> | null = null;
 
-export async function getDeviceId(): Promise<string> {
-  if (cached) return cached;
+export function getDeviceId(): Promise<string> {
+  pending ??= resolveDeviceId().catch((e) => {
+    pending = null; // let a later call retry after a failure
+    throw e;
+  });
+  return pending;
+}
 
+async function resolveDeviceId(): Promise<string> {
   if (Platform.OS === 'android') {
     const androidId = Application.getAndroidId();
-    if (androidId) {
-      cached = androidId;
-      return androidId;
-    }
+    if (androidId) return androidId;
   }
 
   // iOS (and the rare Android null): a Keychain-backed UUID, created once.
   const existing = await SecureStore.getItemAsync(KEYCHAIN_KEY);
-  if (existing) {
-    cached = existing;
-    return existing;
-  }
+  if (existing) return existing;
+
   const generated = Crypto.randomUUID();
   await SecureStore.setItemAsync(KEYCHAIN_KEY, generated);
-  cached = generated;
   return generated;
 }

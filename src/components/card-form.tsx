@@ -10,6 +10,9 @@ import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/** Inner padding of the tip callout — 14, between Spacing.md (12) and Spacing.lg (16). */
+const TIP_PADDING = 14;
+
 export function CardForm({
   initial,
   submitLabel,
@@ -90,7 +93,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    padding: Spacing.md + 2,
+    padding: TIP_PADDING,
     borderRadius: Radius.md,
   },
   tipText: { flex: 1 },

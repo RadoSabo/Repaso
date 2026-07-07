@@ -1,12 +1,13 @@
 import { useRouter } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Badge } from '@/components/badge';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Icon, type IconName } from '@/components/icon';
+import { LanguageSelect } from '@/components/language-select';
 import { SegmentedControl, type Segment } from '@/components/segmented-control';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
@@ -14,12 +15,21 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useEntitlement } from '@/hooks/use-entitlement';
 import { useTheme } from '@/hooks/use-theme';
-import { SUPPORTED_LANGUAGES } from '@/i18n/languages';
 import { DeckTransferError, exportDecks, importDecks } from '@/lib/deck-transfer';
-import { useSettings, type LanguagePreference, type ThemePreference } from '@/store/settings';
+import { useSettings, type ThemePreference } from '@/store/settings';
+
+/** Slightly wider than Spacing.md so the icon tile doesn't crowd the text. */
+const SETTING_ROW_GAP = 14;
 
 export default function SettingsScreen() {
-  const s = useSettings();
+  const themePreference = useSettings((s) => s.themePreference);
+  const setThemePreference = useSettings((s) => s.setThemePreference);
+  const languagePreference = useSettings((s) => s.languagePreference);
+  const setLanguagePreference = useSettings((s) => s.setLanguagePreference);
+  const knownLang = useSettings((s) => s.knownLang);
+  const setKnownLang = useSettings((s) => s.setKnownLang);
+  const targetLang = useSettings((s) => s.targetLang);
+  const setTargetLang = useSettings((s) => s.setTargetLang);
   const router = useRouter();
   const { t } = useTranslation();
   const { isPro } = useEntitlement();
@@ -88,25 +98,25 @@ export default function SettingsScreen() {
         <Section title={t('settings.appearance')}>
           <SegmentedControl
             segments={themeOptions}
-            value={s.themePreference}
-            onChange={s.setThemePreference}
+            value={themePreference}
+            onChange={setThemePreference}
           />
         </Section>
 
         <Section title={t('settings.language')}>
-          <LanguageSelect value={s.languagePreference} onChange={s.setLanguagePreference} />
+          <LanguageSelect value={languagePreference} onChange={setLanguagePreference} />
         </Section>
 
         <Section
           title={t('settings.defaultLanguages')}
           subtitle={t('settings.defaultLanguagesSub')}>
           <View style={styles.row}>
-            <TextField containerStyle={styles.flex} label={t('common.iKnow')} value={s.knownLang} onChangeText={s.setKnownLang} />
+            <TextField containerStyle={styles.flex} label={t('common.iKnow')} value={knownLang} onChangeText={setKnownLang} />
             <TextField
               containerStyle={styles.flex}
               label={t('common.imLearning')}
-              value={s.targetLang}
-              onChangeText={s.setTargetLang}
+              value={targetLang}
+              onChangeText={setTargetLang}
             />
           </View>
         </Section>
@@ -131,76 +141,6 @@ export default function SettingsScreen() {
         </Section>
       </ScrollView>
     </ThemedView>
-  );
-}
-
-/** Full-width dropdown for the app language: a field-style trigger that opens a
- *  modal list of every supported language (plus "System default"). */
-function LanguageSelect({
-  value,
-  onChange,
-}: {
-  value: LanguagePreference;
-  onChange: (v: LanguagePreference) => void;
-}) {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-
-  const options: { value: LanguagePreference; flag: string; label: string }[] =
-    SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, flag: l.flag, label: l.nativeName }));
-  const current = options.find((o) => o.value === value) ?? options[0];
-
-  return (
-    <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('settings.language')}
-        accessibilityValue={{ text: current.label }}
-        onPress={() => setOpen(true)}
-        style={({ pressed }) => [
-          styles.selectTrigger,
-          { backgroundColor: theme.surface, borderColor: theme.border },
-          pressed && styles.pressed,
-        ]}>
-        <View style={styles.optionLabel}>
-          <Text style={styles.flag}>{current.flag}</Text>
-          <ThemedText type="body">{current.label}</ThemedText>
-        </View>
-        <Icon name="caret-down" size={18} color={theme.textMuted} />
-      </Pressable>
-
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          {/* Swallow taps on the sheet so only the backdrop dismisses. */}
-          <Pressable style={[styles.sheet, { backgroundColor: theme.surface }]} onPress={() => {}}>
-            <ScrollView>
-              {options.map((o) => {
-                const isSelected = o.value === value;
-                return (
-                  <Pressable
-                    key={o.value}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSelected }}
-                    accessibilityLabel={o.label}
-                    onPress={() => {
-                      onChange(o.value);
-                      setOpen(false);
-                    }}
-                    style={({ pressed }) => [styles.optionRow, pressed && styles.pressed]}>
-                    <View style={styles.optionLabel}>
-                      <Text style={styles.flag}>{o.flag}</Text>
-                      <ThemedText type={isSelected ? 'bodyBold' : 'body'}>{o.label}</ThemedText>
-                    </View>
-                    {isSelected ? <Icon name="check" size={19} color={theme.brand} /> : null}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
-    </>
   );
 }
 
@@ -279,7 +219,7 @@ const styles = StyleSheet.create({
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md + 2,
+    gap: SETTING_ROW_GAP,
     padding: Spacing.lg,
   },
   settingIcon: {
@@ -289,39 +229,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  selectTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    alignSelf: 'stretch',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    padding: Spacing.xxl,
-  },
-  sheet: {
-    borderRadius: Radius.lg,
-    maxHeight: '70%',
-    paddingVertical: Spacing.xs,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-  },
-  optionLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  flag: { fontSize: 20 },
   pressed: { opacity: 0.7 },
 });

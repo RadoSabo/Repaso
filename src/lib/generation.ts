@@ -4,9 +4,9 @@
  */
 
 import i18n from '@/i18n';
-import { PROXY_URL } from './config';
 import { getDeviceId } from './device-id';
 import { MAX_CARDS_PER_DECK } from './limits';
+import { postToProxy, ProxyError } from './proxy-request';
 import { getAppUserId } from './revenuecat';
 
 export interface DraftCard {
@@ -43,14 +43,8 @@ export interface GenerateResult {
   omitted: string[];
 }
 
-export class GenerationError extends Error {
-  /** True when generation was blocked by the free quota — route to the paywall. */
-  readonly paywall: boolean;
-  constructor(message: string, options?: { paywall?: boolean }) {
-    super(message);
-    this.paywall = options?.paywall ?? false;
-  }
-}
+/** `paywall` is true when generation was blocked by the free quota — route to the paywall. */
+export class GenerationError extends ProxyError {}
 
 export async function generateCards(opts: GenerateOptions): Promise<GenerateResult> {
   const input = opts.input.trim();
@@ -60,8 +54,6 @@ export async function generateCards(opts: GenerateOptions): Promise<GenerateResu
 
   const max = Math.max(1, Math.min(opts.max ?? MAX_CARDS_PER_DECK, MAX_CARDS_PER_DECK));
 
-  const url = `${PROXY_URL}/api/generate`;
-
   // The server keys the free quota on the device id and gates unlimited use on
   // the RevenueCat app-user-id; getAppUserId is best-effort (empty if the SDK
   // isn't configured in this build).
@@ -70,37 +62,24 @@ export async function generateCards(opts: GenerateOptions): Promise<GenerateResu
     getAppUserId().catch(() => ''),
   ]);
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        knownLang: opts.knownLang,
-        targetLang: opts.targetLang,
-        input,
-        outputStyle: opts.outputStyle,
-        max,
-        deviceId,
-        appUserId,
-      }),
-    });
-  } catch {
-    throw new GenerationError(i18n.t('gen.cannotReach'));
-  }
+  const data = await postToProxy<{ cards?: DraftCard[]; omitted?: string[] }>({
+    path: '/api/generate',
+    body: {
+      knownLang: opts.knownLang,
+      targetLang: opts.targetLang,
+      input,
+      outputStyle: opts.outputStyle,
+      max,
+      deviceId,
+      appUserId,
+    },
+    error: GenerationError,
+    cannotReachKey: 'gen.cannotReach',
+    paywallKey: 'gen.usedAll',
+    rateLimitedKey: 'gen.rateLimited',
+    failedKey: 'gen.failed',
+  });
 
-  if (!res.ok) {
-    if (res.status === 402) {
-      throw new GenerationError(i18n.t('gen.usedAll'), { paywall: true });
-    }
-    const detail = await res.text().catch(() => '');
-    if (res.status === 429) throw new GenerationError(i18n.t('gen.rateLimited'));
-    throw new GenerationError(detail || i18n.t('gen.failed', { status: res.status }));
-  }
-
-  const data = (await res.json().catch(() => null)) as
-    | { cards?: DraftCard[]; omitted?: string[] }
-    | null;
   const rawCards = data?.cards;
   if (!Array.isArray(rawCards)) {
     throw new GenerationError(i18n.t('gen.unexpected'));

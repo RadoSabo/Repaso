@@ -58,9 +58,14 @@ export function useImageInput(
       setError(i18n.t('image.cameraOff'));
       return;
     }
-    await handleResult(
-      await ImagePicker.launchCameraAsync({ base64: true, mediaTypes: ['images'], quality: IMAGE_QUALITY }),
-    );
+    try {
+      await handleResult(
+        await ImagePicker.launchCameraAsync({ base64: true, mediaTypes: ['images'], quality: IMAGE_QUALITY }),
+      );
+    } catch (e) {
+      console.warn('[image] camera failed', e);
+      setError(i18n.t('image.readingFailed'));
+    }
   }, [handleResult]);
 
   const fromLibrary = useCallback(async () => {
@@ -70,9 +75,14 @@ export function useImageInput(
       setError(i18n.t('image.photoOff'));
       return;
     }
-    await handleResult(
-      await ImagePicker.launchImageLibraryAsync({ base64: true, mediaTypes: ['images'], quality: IMAGE_QUALITY }),
-    );
+    try {
+      await handleResult(
+        await ImagePicker.launchImageLibraryAsync({ base64: true, mediaTypes: ['images'], quality: IMAGE_QUALITY }),
+      );
+    } catch (e) {
+      console.warn('[image] photo library failed', e);
+      setError(i18n.t('image.readingFailed'));
+    }
   }, [handleResult]);
 
   return { loading, error, fromCamera, fromLibrary };

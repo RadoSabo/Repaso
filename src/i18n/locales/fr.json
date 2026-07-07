@@ -45,12 +45,11 @@
     "cardCount_other": "{{count}} cartes"
   },
   "onboarding": {
-    "step1Title": "Apprends les mots en contexte",
-    "step1Body": "Ajoute des mots ou un sujet — Repaso les transforme en vraies phrases avec traductions.",
-    "step2Title": "Tape, parle ou photographie",
-    "step2Body": "Ajoute du vocabulaire en tapant, en enregistrant ta voix ou en prenant une photo.",
-    "step3Title": "Mémorise grâce à la répétition",
-    "step3Body": "On te rappelle de réviser au bon moment, pour que ça reste vraiment.",
+    "steps": [
+      { "title": "Apprends les mots en contexte", "body": "Ajoute des mots ou un sujet — Repaso les transforme en vraies phrases avec traductions." },
+      { "title": "Tape, parle ou photographie", "body": "Ajoute du vocabulaire en tapant, en enregistrant ta voix ou en prenant une photo." },
+      { "title": "Mémorise grâce à la répétition", "body": "On te rappelle de réviser au bon moment, pour que ça reste vraiment." }
+    ],
     "start": "Commencer à apprendre",
     "next": "Suivant",
     "skip": "Passer",
@@ -198,12 +197,11 @@
     "notice": "Chaque paquet contient jusqu’à {{max}} cartes."
   },
   "paywall": {
-    "benefit1Title": "Génère à partir de n’importe quel sujet",
-    "benefit1Body": "Tape une liste de mots ou décris un sujet — obtiens un paquet complet en quelques secondes.",
-    "benefit2Title": "Prends une photo ou dicte-le",
-    "benefit2Body": "Transforme une page de manuel ou ta voix directement en cartes.",
-    "benefit3Title": "Générations illimitées",
-    "benefit3Body": "Aucune limite quotidienne. Crée autant de paquets que nécessaire.",
+    "benefits": [
+      { "title": "Génère à partir de n’importe quel sujet", "body": "Tape une liste de mots ou décris un sujet — obtiens un paquet complet en quelques secondes." },
+      { "title": "Prends une photo ou dicte-le", "body": "Transforme une page de manuel ou ta voix directement en cartes." },
+      { "title": "Générations illimitées", "body": "Aucune limite quotidienne. Crée autant de paquets que nécessaire." }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "Génère des paquets avec l’IA",
     "heroSub": "Arrête de taper les cartes à la main. Transforme n’importe quel sujet, photo ou liste de mots en un paquet prêt à étudier.",
@@ -264,6 +262,7 @@
     "cannotRead": "Impossible de lire l’enregistrement. Réessaie.",
     "cannotReach": "Impossible de joindre le serveur de transcription. Vérifie ta connexion.",
     "proRequired": "Repaso Pro est requis pour la saisie vocale.",
+    "rateLimited": "Trop de requêtes. Patiente un instant et réessaie.",
     "failed": "Échec de la transcription (HTTP {{status}})."
   },
   "image": {

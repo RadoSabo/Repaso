@@ -1,4 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable } from 'react-native';
 
@@ -13,8 +14,9 @@ export default function EditCardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
-  const card = getCard(Number(id));
-  const deck = card ? getDeck(card.deckId) : undefined;
+  // The card and its deck are fixed for this screen's lifetime — snapshot once.
+  const [card] = useState(() => getCard(Number(id)));
+  const [deck] = useState(() => (card ? getDeck(card.deckId) : undefined));
 
   if (!card) {
     return (
@@ -30,6 +32,8 @@ export default function EditCardScreen() {
         options={{
           headerRight: () => (
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('card.delete')}
               hitSlop={12}
               onPress={() => confirmDeleteCard(card.id, card.front, () => router.back())}>
               <ThemedText type="smBold" themeColor="danger">

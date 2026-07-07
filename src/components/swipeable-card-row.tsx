@@ -20,6 +20,10 @@ import { useTheme } from '@/hooks/use-theme';
 const TRIGGER = 96;
 /** Drag distance over which an action background fades fully in. */
 const REVEAL = 56;
+/** Travel before the pan activates (X) or fails to a vertical scroll (Y). */
+const ACTIVATION_OFFSET = 12;
+/** Spring settling the row back to rest after release. */
+const SETTLE_SPRING = { damping: 18, stiffness: 180 };
 
 interface SwipeableCardRowProps {
   children: ReactNode;
@@ -41,15 +45,15 @@ export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRo
   const tx = useSharedValue(0);
 
   const pan = Gesture.Pan()
-    .activeOffsetX([-12, 12])
-    .failOffsetY([-12, 12])
+    .activeOffsetX([-ACTIVATION_OFFSET, ACTIVATION_OFFSET])
+    .failOffsetY([-ACTIVATION_OFFSET, ACTIVATION_OFFSET])
     .onUpdate((e) => {
       tx.value = e.translationX;
     })
     .onEnd((e) => {
       if (e.translationX > TRIGGER) runOnJS(onEdit)();
       else if (e.translationX < -TRIGGER) runOnJS(onDelete)();
-      tx.value = withSpring(0, { damping: 18, stiffness: 180 });
+      tx.value = withSpring(0, SETTLE_SPRING);
     });
 
   const foreground = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
@@ -78,7 +82,18 @@ export function SwipeableCardRow({ children, onEdit, onDelete }: SwipeableCardRo
       </Animated.View>
 
       <GestureDetector gesture={pan}>
-        <Animated.View style={foreground}>{children}</Animated.View>
+        <Animated.View
+          style={foreground}
+          accessibilityActions={[
+            { name: 'edit', label: t('common.edit') },
+            { name: 'delete', label: t('common.delete') },
+          ]}
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === 'edit') onEdit();
+            else if (event.nativeEvent.actionName === 'delete') onDelete();
+          }}>
+          {children}
+        </Animated.View>
       </GestureDetector>
     </View>
   );
@@ -97,7 +112,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs + 2,
+    gap: Spacing.xsPlus,
   },
   bgEdit: { justifyContent: 'flex-start', paddingLeft: Spacing.lg },
   bgDelete: { justifyContent: 'flex-end', paddingRight: Spacing.lg },

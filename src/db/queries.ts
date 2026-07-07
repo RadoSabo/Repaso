@@ -1,10 +1,14 @@
 import { desc, eq, sql } from 'drizzle-orm';
 
-import { scheduleAfterReview } from '@/lib/scheduling';
 import { db } from './client';
 import { cards, decks, type Card, type Deck, type NewCard } from './schema';
 
 export const nowSec = () => Math.floor(Date.now() / 1000);
+
+/** Runs `fn` atomically in one SQLite transaction (rolled back if it throws). */
+export function withTransaction<T>(fn: () => T): T {
+  return db.transaction(() => fn());
+}
 
 // ---------------------------------------------------------------------------
 // Read queries (pass the returned builder to `useLiveQuery` for live updates)
@@ -93,7 +97,10 @@ export function updateDeck(
   id: number,
   patch: Partial<Pick<typeof decks.$inferInsert, 'name' | 'description' | 'knownLang' | 'targetLang'>>
 ) {
-  return db.update(decks).set(patch).where(eq(decks.id, id)).run();
+  const set = { ...patch };
+  if (typeof set.name === 'string') set.name = set.name.trim();
+  if (typeof set.description === 'string') set.description = set.description.trim() || null;
+  return db.update(decks).set(set).where(eq(decks.id, id)).run();
 }
 
 export function deleteDeck(id: number) {
@@ -117,9 +124,11 @@ const STARTER_CARDS = [
 
 /** Creates the example deck shown on a fresh install so the app is never empty. */
 export function seedStarterDeck() {
-  const deck = createDeck({ name: 'Everyday Spanish', knownLang: 'English', targetLang: 'Spanish' });
-  createCards(deck.id, STARTER_CARDS, 'manual');
-  return deck;
+  return withTransaction(() => {
+    const deck = createDeck({ name: 'Everyday Spanish', knownLang: 'English', targetLang: 'Spanish' });
+    createCards(deck.id, STARTER_CARDS, 'manual');
+    return deck;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -183,37 +192,33 @@ export function getDeckCards(deckId: number): Card[] {
 
 /** Every deck with its cards — used by the export/import data transfer. */
 export function getAllDecksWithCards(): { deck: Deck; cards: Card[] }[] {
-  return db
-    .select()
-    .from(decks)
-    .orderBy(desc(decks.createdAt))
-    .all()
-    .map((deck) => ({
-      deck,
-      cards: db.select().from(cards).where(eq(cards.deckId, deck.id)).orderBy(cards.createdAt).all(),
-    }));
+  const allDecks = db.select().from(decks).orderBy(desc(decks.createdAt)).all();
+  const allCards = db.select().from(cards).orderBy(cards.createdAt).all();
+  const cardsByDeck = new Map<number, Card[]>();
+  for (const card of allCards) {
+    const list = cardsByDeck.get(card.deckId);
+    if (list) list.push(card);
+    else cardsByDeck.set(card.deckId, [card]);
+  }
+  return allDecks.map((deck) => ({ deck, cards: cardsByDeck.get(deck.id) ?? [] }));
 }
 
 /**
- * Records a completed review and resolves the deck's spaced schedule. Reviewing
- * while due advances the deck; reviewing early keeps the same stage and due
- * date. Returns the resulting schedule.
+ * Persists a completed review: the resolved schedule (computed by the caller,
+ * see `useReviewSession`) plus the review timestamp.
  */
 export function completeDeckReview(
   deckId: number,
-  currentStage: number,
-  nextReviewAt: number | null
+  schedule: { reviewStage: number; nextReviewAt: number }
 ) {
-  const next = scheduleAfterReview(currentStage, nextReviewAt);
   db.update(decks)
     .set({
-      reviewStage: next.reviewStage,
+      reviewStage: schedule.reviewStage,
       lastReviewedAt: nowSec(),
-      nextReviewAt: next.nextReviewAt,
+      nextReviewAt: schedule.nextReviewAt,
     })
     .where(eq(decks.id, deckId))
     .run();
-  return next;
 }
 
 /** Stores (or clears) the id of the deck's scheduled reminder. */

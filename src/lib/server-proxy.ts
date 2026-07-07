@@ -1,4 +1,6 @@
 /**
+ * SERVER-ONLY MODULE — must never be imported from client code.
+ *
  * Server-only helpers shared by the proxy API routes (`app/api/*+api.ts`).
  * These run on EAS Hosting / the Expo dev server and are never bundled into the
  * client. Keep all OpenAI access and request-hardening here.
@@ -24,6 +26,10 @@ export function rateLimited(key: string): boolean {
   const now = Date.now();
   const entry = hits.get(key);
   if (!entry || now > entry.resetAt) {
+    // Sweep expired entries so one-off keys can't grow the map unboundedly.
+    for (const [k, v] of hits) {
+      if (now > v.resetAt) hits.delete(k);
+    }
     hits.set(key, { count: 1, resetAt: now + WINDOW_MS });
     return false;
   }

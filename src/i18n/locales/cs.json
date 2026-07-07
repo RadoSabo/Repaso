@@ -47,12 +47,11 @@
     "cardCount_other": "{{count}} kartiček"
   },
   "onboarding": {
-    "step1Title": "Uč se slovíčka v kontextu",
-    "step1Body": "Zadej slovíčka nebo téma — Repaso z nich udělá skutečné věty s překladem.",
-    "step2Title": "Napiš, řekni, nebo vyfoť",
-    "step2Body": "Přidávej slovíčka psaním, nahráním hlasu, nebo focením.",
-    "step3Title": "Zapamatuj si je opakováním",
-    "step3Body": "Připomeneme ti opakování přesně ve správný čas, aby ti to opravdu utkvělo.",
+    "steps": [
+      { "title": "Uč se slovíčka v kontextu", "body": "Zadej slovíčka nebo téma — Repaso z nich udělá skutečné věty s překladem." },
+      { "title": "Napiš, řekni, nebo vyfoť", "body": "Přidávej slovíčka psaním, nahráním hlasu, nebo focením." },
+      { "title": "Zapamatuj si je opakováním", "body": "Připomeneme ti opakování přesně ve správný čas, aby ti to opravdu utkvělo." }
+    ],
     "start": "Začít se učit",
     "next": "Dál",
     "skip": "Přeskočit",
@@ -207,12 +206,11 @@
     "notice": "Každý balíček pojme až {{max}} kartiček."
   },
   "paywall": {
-    "benefit1Title": "Generuj z jakéhokoli tématu",
-    "benefit1Body": "Napiš seznam slovíček nebo popiš téma — během pár sekund máš celý balíček.",
-    "benefit2Title": "Vyfoť to nebo řekni",
-    "benefit2Body": "Proměň stránku z učebnice nebo svůj hlas rovnou v kartičky.",
-    "benefit3Title": "Neomezené generování",
-    "benefit3Body": "Žádné denní limity. Vytvoř si tolik balíčků, kolik potřebuješ.",
+    "benefits": [
+      { "title": "Generuj z jakéhokoli tématu", "body": "Napiš seznam slovíček nebo popiš téma — během pár sekund máš celý balíček." },
+      { "title": "Vyfoť to nebo řekni", "body": "Proměň stránku z učebnice nebo svůj hlas rovnou v kartičky." },
+      { "title": "Neomezené generování", "body": "Žádné denní limity. Vytvoř si tolik balíčků, kolik potřebuješ." }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "Generuj balíčky s AI",
     "heroSub": "Přestaň psát kartičky ručně. Proměň jakékoli téma, fotku nebo seznam slovíček v balíček připravený k učení.",
@@ -274,6 +272,7 @@
     "cannotRead": "Nahrávku se nepodařilo přečíst. Zkus to znovu.",
     "cannotReach": "Server pro přepis není dostupný. Zkontroluj připojení.",
     "proRequired": "Pro hlasový vstup je potřeba Repaso Pro.",
+    "rateLimited": "Příliš mnoho požadavků. Chvíli počkej a zkus to znovu.",
     "failed": "Přepis selhal (HTTP {{status}})."
   },
   "image": {

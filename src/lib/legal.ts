@@ -15,7 +15,11 @@ const DEVELOPER_NAME = 'Repaso';
 const SUPPORT_EMAIL = 'support@repaso.app';
 /** Jurisdiction whose laws govern the Terms. */
 const GOVERNING_LAW = 'Slovakia';
-/** Shown as the "Last updated" date. */
+/**
+ * Shown as the "Last updated" date. NOTE: this and the subscription prices
+ * hard-coded in the Terms below (monthly €2 / annual €20) must be kept in sync
+ * with the live RevenueCat offering.
+ */
 const LAST_UPDATED = 'June 28, 2026';
 // --------------------------------------------------------------------------
 

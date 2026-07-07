@@ -36,6 +36,9 @@ import { useSettings } from '@/store/settings';
 
 SplashScreen.preventAutoHideAsync();
 
+/** Between Typography.h3 (18) and h2 (22): native header titles sit best at 19. */
+const HEADER_TITLE_FONT_SIZE = 19;
+
 // Repaso is mobile-only. The deployed web build serves just the API routes and
 // the Terms / Privacy pages (all `+api.ts` handlers, which run outside this React
 // tree); every app screen is replaced by a notice. Native runs the real app.
@@ -96,7 +99,11 @@ function NativeRoot() {
   const screenOptions = {
     headerStyle: { backgroundColor: theme.bg },
     headerTintColor: theme.brand,
-    headerTitleStyle: { color: theme.text, fontFamily: FontFamily.display, fontSize: 19 },
+    headerTitleStyle: {
+      color: theme.text,
+      fontFamily: FontFamily.display,
+      fontSize: HEADER_TITLE_FONT_SIZE,
+    },
     headerShadowVisible: false,
     contentStyle: { backgroundColor: theme.bg },
   } as const;

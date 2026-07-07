@@ -1,18 +1,15 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
-import { create } from "zustand";
-import {
-  createJSONStorage,
-  persist,
-  type StateStorage,
-} from "zustand/middleware";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import { create } from 'zustand';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
-import { defaultDeckLanguages, resolveDeviceLanguage } from "@/i18n/languages";
-import type { OutputStyle } from "@/lib/generation";
+import { defaultDeckLanguages, resolveDeviceLanguage } from '@/i18n/languages';
+import type { OutputStyle } from '@/lib/generation';
 
-// During web server rendering (Node) there is no `window`/localStorage, so
-// AsyncStorage's web build throws. Fall back to an in-memory store there;
-// native and the browser use real persistent storage.
+// Sanctioned web exception (see AGENTS.md): the web export exists only to host
+// the API routes, but its static render still evaluates this module in Node,
+// where AsyncStorage's web build throws (no `window`/localStorage). Fall back
+// to an in-memory store there; native uses real persistent storage.
 const memoryStorage: StateStorage = (() => {
   const map = new Map<string, string>();
   return {
@@ -23,11 +20,9 @@ const memoryStorage: StateStorage = (() => {
 })();
 
 const persistentStorage: StateStorage =
-  Platform.OS !== "web" || typeof window !== "undefined"
-    ? AsyncStorage
-    : memoryStorage;
+  Platform.OS !== 'web' || typeof window !== 'undefined' ? AsyncStorage : memoryStorage;
 
-export type ThemePreference = "system" | "light" | "dark";
+export type ThemePreference = 'system' | 'light' | 'dark';
 
 /** UI locale code (e.g. "fr", "pt-BR"); seeded from the phone language. */
 export type LanguagePreference = string;
@@ -65,8 +60,8 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       knownLang: deckDefaults.known,
       targetLang: deckDefaults.target,
-      outputStyle: "sentences",
-      themePreference: "system",
+      outputStyle: 'sentences',
+      themePreference: 'system',
       languagePreference: deviceLanguage,
       onboarded: false,
       hydrated: false,
@@ -78,7 +73,7 @@ export const useSettings = create<SettingsState>()(
       setOnboarded: (v) => set({ onboarded: v }),
     }),
     {
-      name: "repaso-settings",
+      name: 'repaso-settings',
       storage: createJSONStorage(() => persistentStorage),
       // Don't persist functions or the transient `hydrated` flag.
       partialize: ({

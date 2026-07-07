@@ -28,10 +28,13 @@ export type ButtonProps = Omit<PressableProps, 'style'> & {
   style?: ViewStyle;
 };
 
-const SIZES: Record<ButtonSize, { height: number; padding: number; icon: number; radius: number }> = {
-  sm: { height: 38, padding: Spacing.lg, icon: 16, radius: Radius.md },
-  md: { height: 50, padding: 22, icon: 19, radius: Radius.md },
-  lg: { height: 58, padding: Spacing.xxl, icon: 21, radius: Radius.lg },
+const SIZES: Record<
+  ButtonSize,
+  { height: number; padding: number; icon: number; radius: number; fontSize: number }
+> = {
+  sm: { height: 38, padding: Spacing.lg, icon: 16, radius: Radius.md, fontSize: 15 },
+  md: { height: 50, padding: 22, icon: 19, radius: Radius.md, fontSize: 15 },
+  lg: { height: 58, padding: Spacing.xxl, icon: 21, radius: Radius.lg, fontSize: 17 },
 };
 
 /**
@@ -69,8 +72,8 @@ export function Button({
     secondary: theme.brandContrast,
     ghost: theme.brandContrast,
     danger: theme.dangerStrong,
-    success: '#FFFFFF',
-    spark: '#FFFFFF',
+    success: theme.textOnBrand,
+    spark: theme.textOnBrand,
   };
   const lift =
     variant === 'spark' ? shadows.spark : variant === 'primary' ? shadows.brand : undefined;
@@ -113,7 +116,7 @@ export function Button({
       ) : (
         <View style={styles.content}>
           {leadingIcon ? <Icon name={leadingIcon} size={s.icon} color={color} /> : null}
-          <ThemedText type="smBold" numberOfLines={1} style={{ color, fontSize: size === 'lg' ? 17 : 15 }}>
+          <ThemedText type="smBold" numberOfLines={1} style={{ color, fontSize: s.fontSize }}>
             {title}
           </ThemedText>
           {trailingIcon ? <Icon name={trailingIcon} size={s.icon} color={color} /> : null}

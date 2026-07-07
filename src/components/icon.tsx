@@ -90,7 +90,7 @@ const GLYPHS: Record<IconName, Glyph> = {
 export interface IconProps {
   name: IconName;
   size?: number;
-  /** A palette color key, or a literal color string. Defaults to current text. */
+  /** A literal color string (not resolved against the palette). Defaults to current text. */
   color?: string;
   style?: StyleProp<TextStyle>;
 }

@@ -43,12 +43,11 @@
     "cardCount_other": "{{count}} 张卡片"
   },
   "onboarding": {
-    "step1Title": "在语境中学单词",
-    "step1Body": "输入单词或主题——Repaso 会把它们变成带翻译的真实句子。",
-    "step2Title": "打字、说话或拍照",
-    "step2Body": "通过打字、录音或拍照来添加词汇。",
-    "step3Title": "靠重复来记住",
-    "step3Body": "我们会在恰当的时机提醒你复习，让记忆真正牢固。",
+    "steps": [
+      { "title": "在语境中学单词", "body": "输入单词或主题——Repaso 会把它们变成带翻译的真实句子。" },
+      { "title": "打字、说话或拍照", "body": "通过打字、录音或拍照来添加词汇。" },
+      { "title": "靠重复来记住", "body": "我们会在恰当的时机提醒你复习，让记忆真正牢固。" }
+    ],
     "start": "开始学习",
     "next": "下一步",
     "skip": "跳过",
@@ -189,12 +188,11 @@
     "notice": "每个卡组最多容纳 {{max}} 张卡片。"
   },
   "paywall": {
-    "benefit1Title": "从任何主题生成",
-    "benefit1Body": "输入单词列表或描述一个主题——几秒钟内即可获得完整卡组。",
-    "benefit2Title": "拍照或说出来",
-    "benefit2Body": "把课本页面或你的语音直接变成卡片。",
-    "benefit3Title": "无限次生成",
-    "benefit3Body": "没有每日上限。想建多少卡组都可以。",
+    "benefits": [
+      { "title": "从任何主题生成", "body": "输入单词列表或描述一个主题——几秒钟内即可获得完整卡组。" },
+      { "title": "拍照或说出来", "body": "把课本页面或你的语音直接变成卡片。" },
+      { "title": "无限次生成", "body": "没有每日上限。想建多少卡组都可以。" }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "用 AI 生成卡组",
     "heroSub": "不必再手动输入卡片。把任何主题、照片或单词列表变成可立即学习的卡组。",
@@ -254,6 +252,7 @@
     "cannotRead": "无法读取录音。请重试。",
     "cannotReach": "无法连接到转写服务器。请检查你的网络连接。",
     "proRequired": "语音输入需要 Repaso Pro。",
+    "rateLimited": "请求过于频繁。请稍候片刻后重试。",
     "failed": "转写失败（HTTP {{status}}）。"
   },
   "image": {

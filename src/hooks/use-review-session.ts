@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { completeDeckReview, getDeck, getDeckCards, setDeckNotificationId } from '@/db/queries';
 import type { Card, Deck } from '@/db/schema';
 import { cancelReminder, scheduleDeckReminder } from '@/lib/notifications';
-import { insertAtRandom, shuffle } from '@/lib/scheduling';
+import { insertAtRandom, scheduleAfterReview, shuffle } from '@/lib/scheduling';
 
 export interface ReviewSession {
   deck: Deck | undefined;
@@ -24,7 +24,8 @@ export interface ReviewSession {
  * Kept free of presentation so it can be unit-tested on its own.
  */
 export function useReviewSession(deckId: number): ReviewSession {
-  const deck = getDeck(deckId);
+  // The session intentionally works on a mount-time snapshot of the deck.
+  const [deck] = useState(() => getDeck(deckId));
 
   // Snapshot + shuffle the deck's cards once when the session starts.
   const [queue, setQueue] = useState<Card[]>(() => shuffle(getDeckCards(deckId)));
@@ -32,32 +33,38 @@ export function useReviewSession(deckId: number): ReviewSession {
   const [missed, setMissed] = useState(0);
   // Card count is fixed for the session — capture it once, never re-read a ref in render.
   const [total] = useState(() => queue.length);
-  const scheduled = useRef(false);
+  const completed = useRef(false);
 
   const current = queue[0];
   const upcoming = queue[1];
 
-  const answer = useCallback((knewIt: boolean) => {
-    setQueue(([reviewed, ...rest]) => {
-      if (!reviewed) return rest;
-      return knewIt ? rest : insertAtRandom(rest, reviewed);
-    });
-    if (knewIt) setKnew((n) => n + 1);
-    else setMissed((n) => n + 1);
-  }, []);
-
-  // When the queue empties, advance the deck schedule and (re)schedule the reminder — once.
-  useEffect(() => {
-    if (current || !deck || scheduled.current || total === 0) return;
-    scheduled.current = true;
-    const previousNotificationId = deck.notificationId;
-    const next = completeDeckReview(deck.id, deck.reviewStage, deck.nextReviewAt);
-    (async () => {
-      await cancelReminder(previousNotificationId);
+  // Advance the deck schedule and (re)schedule the reminder — once per session.
+  const completeSession = useCallback(() => {
+    if (!deck || completed.current) return;
+    completed.current = true;
+    const next = scheduleAfterReview(deck.reviewStage, deck.nextReviewAt);
+    completeDeckReview(deck.id, next);
+    void (async () => {
+      await cancelReminder(deck.notificationId);
       const newId = await scheduleDeckReminder(deck.name, next.nextReviewAt);
       setDeckNotificationId(deck.id, newId);
-    })();
-  }, [current, deck, total]);
+    })().catch((e) => console.warn('[review] rescheduling the deck reminder failed', e));
+  }, [deck]);
+
+  const answer = useCallback(
+    (knewIt: boolean) => {
+      // The queue only ever empties on a known card (missed cards are reinserted),
+      // so completion is an event of answering the last card — not a render effect.
+      if (knewIt && queue.length === 1) completeSession();
+      setQueue(([reviewed, ...rest]) => {
+        if (!reviewed) return rest;
+        return knewIt ? rest : insertAtRandom(rest, reviewed);
+      });
+      if (knewIt) setKnew((n) => n + 1);
+      else setMissed((n) => n + 1);
+    },
+    [queue.length, completeSession],
+  );
 
   return { deck, current, upcoming, knew, missed, total, answer };
 }

@@ -23,6 +23,9 @@ import { confirmDeleteDeck } from '@/lib/deck-actions';
 import { dueLabel, isDue } from '@/lib/scheduling';
 import { useSettings } from '@/store/settings';
 
+/** Slightly wider than Spacing.lg so the gradient hero reads as a feature card. */
+const HERO_PADDING = 18;
+
 export default function DecksScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -106,9 +109,11 @@ export default function DecksScreen() {
 }
 
 function ProgressHero({ due, done, total }: { due: number; done: number; total: number }) {
+  const theme = useTheme();
   const shadows = useShadows();
   const { t } = useTranslation();
   const allDone = due === 0;
+  const onBrand = { color: theme.textOnBrand };
   return (
     <LinearGradient
       colors={SparkGradient}
@@ -117,12 +122,12 @@ function ProgressHero({ due, done, total }: { due: number; done: number; total: 
       style={[styles.hero, shadows.spark]}>
       <View style={styles.heroTop}>
         <View style={styles.heroTitle}>
-          <Icon name={allDone ? 'check-circle' : 'calendar-check'} size={24} color="#fff" />
-          <ThemedText type="h3" style={styles.heroHeading}>
+          <Icon name={allDone ? 'check-circle' : 'calendar-check'} size={24} color={theme.textOnBrand} />
+          <ThemedText type="h3" style={onBrand}>
             {allDone ? t('home.allCaughtUp') : t('home.decksToReview', { count: due })}
           </ThemedText>
         </View>
-        <ThemedText type="mono" style={styles.heroCount}>
+        <ThemedText type="mono" style={onBrand}>
           {done}/{total}
         </ThemedText>
       </View>
@@ -130,10 +135,10 @@ function ProgressHero({ due, done, total }: { due: number; done: number; total: 
         value={done}
         max={total}
         height={10}
-        trackColor="rgba(255,255,255,0.3)"
-        fillColor="#fff"
+        trackColor={theme.onBrandMuted}
+        fillColor={theme.textOnBrand}
       />
-      <ThemedText type="sm" style={styles.heroSub}>
+      <ThemedText type="sm" style={onBrand}>
         {allDone ? t('home.allReviewed') : t('home.decksReviewed', { done, total })}
       </ThemedText>
     </LinearGradient>
@@ -187,15 +192,12 @@ const styles = StyleSheet.create({
   separator: { height: Spacing.md },
   hero: {
     borderRadius: Radius.xl,
-    padding: Spacing.lg + 2,
+    padding: HERO_PADDING,
     marginBottom: Spacing.xxl,
     gap: Spacing.md,
   },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heroTitle: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm + 1, flex: 1 },
-  heroHeading: { color: '#fff' },
-  heroCount: { color: 'rgba(255,255,255,0.9)' },
-  heroSub: { color: 'rgba(255,255,255,0.95)' },
+  heroTitle: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flex: 1 },
   sectionTitle: { marginBottom: Spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, padding: Spacing.lg },
   deckIcon: {

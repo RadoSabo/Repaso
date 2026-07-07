@@ -143,6 +143,7 @@ function AnswerButton({
   chip: string;
   onPress: () => void;
 }) {
+  const theme = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -153,7 +154,7 @@ function AnswerButton({
         { backgroundColor: bg, transform: [{ scale: pressed ? 0.97 : 1 }] },
       ]}>
       <View style={[styles.answerChip, { backgroundColor: chip }]}>
-        <Icon name={icon} size={17} color="#fff" />
+        <Icon name={icon} size={17} color={theme.textOnBrand} />
       </View>
       <ThemedText type="smBold" numberOfLines={2} style={[styles.answerLabel, { color: fg }]}>
         {label}
@@ -184,13 +185,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.sm + 1,
+    gap: Spacing.sm,
     minHeight: 56,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.lg,
   },
-  answerLabel: { flexShrink: 1, fontSize: 15 },
+  answerLabel: { flexShrink: 1 },
   answerChip: {
     width: 30,
     height: 30,

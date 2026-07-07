@@ -1,5 +1,11 @@
 import { sql } from 'drizzle-orm';
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+/**
+ * NOTE: the runtime DDL in `client.ts` is the migration source of truth
+ * (drizzle-kit was removed). This schema exists for query typing and must be
+ * kept in sync with it by hand.
+ */
 
 /**
  * Decks carry a simple per-deck spaced-review schedule:
@@ -23,20 +29,24 @@ export const decks = sqliteTable('decks', {
   notificationId: text('notification_id'),
 });
 
-export const cards = sqliteTable('cards', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  deckId: integer('deck_id')
-    .notNull()
-    .references(() => decks.id, { onDelete: 'cascade' }),
-  front: text('front').notNull(),
-  back: text('back').notNull(),
-  source: text('source', { enum: ['manual', 'generated'] })
-    .notNull()
-    .default('manual'),
-  createdAt: integer('created_at')
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
+export const cards = sqliteTable(
+  'cards',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    deckId: integer('deck_id')
+      .notNull()
+      .references(() => decks.id, { onDelete: 'cascade' }),
+    front: text('front').notNull(),
+    back: text('back').notNull(),
+    source: text('source', { enum: ['manual', 'generated'] })
+      .notNull()
+      .default('manual'),
+    createdAt: integer('created_at')
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [index('idx_cards_deck').on(table.deckId)]
+);
 
 export type Deck = typeof decks.$inferSelect;
 export type NewDeck = typeof decks.$inferInsert;

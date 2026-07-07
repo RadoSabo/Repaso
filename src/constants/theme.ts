@@ -8,9 +8,7 @@
  * `Typography`, `Shadows`, and the active palette via `useTheme()`.
  */
 
-import '@/global.css';
-
-import { Platform, type TextStyle, type ViewStyle } from 'react-native';
+import { type TextStyle, type ViewStyle } from 'react-native';
 
 // ---------------------------------------------------------------------------
 // Color — semantic palette per scheme
@@ -68,6 +66,10 @@ const light = {
 
     // controls
     switchTrackOff: '#B4C0BC',
+
+    // translucent scrims & tints on brand/gradient surfaces
+    overlay: 'rgba(0, 0, 0, 0.4)',
+    onBrandMuted: 'rgba(255, 255, 255, 0.3)',
 };
 
 export type Palette = typeof light;
@@ -115,6 +117,9 @@ const dark: Palette = {
     dangerOn: '#FF9B9B',
 
     switchTrackOff: '#434E49',
+
+    overlay: 'rgba(0, 0, 0, 0.4)',
+    onBrandMuted: 'rgba(255, 255, 255, 0.3)',
 };
 
 export const Colors = { light, dark };
@@ -124,8 +129,6 @@ export type ThemeColor = keyof Palette;
 
 /** The one tasteful gradient: the AI "Generate" magic action. Same in both schemes. */
 export const SparkGradient = ['#FB7E38', '#EA6212', '#C9500B'] as const;
-/** Soft brand wash used behind hero areas. */
-export const HeroGradient = ['#FB7E38', '#EA6212', '#C9500B'] as const;
 
 // ---------------------------------------------------------------------------
 // Typography — Fredoka (display) · Nunito (body/UI) · DM Mono (numeric)
@@ -186,6 +189,8 @@ export const Typography: Record<TextRole, TextStyle> = {
 
 export const Spacing = {
   xs: 4,
+  /** Half-step between xs and sm, used for dense chip/row padding. */
+  xsPlus: 6,
   sm: 8,
   md: 12,
   lg: 16,
@@ -246,9 +251,9 @@ function shadow(
 const INK = '#4A4236';
 
 /** Scheme-aware elevation. Brand-tinted shadows use the active brand color. */
-export function makeShadows(palette: Palette) {
+export function makeShadows(palette: Palette, scheme: ColorScheme) {
   // Diffuse neutral shadows read as muddy on dark surfaces; soften there.
-  const isDark = palette === Colors.dark;
+  const isDark = scheme === 'dark';
   const inkOpacity = (lightVal: number, darkVal: number) => (isDark ? darkVal : lightVal);
   return {
     sm: shadow(INK, inkOpacity(0.1, 0.3), 3, 1, 1),
@@ -260,10 +265,3 @@ export function makeShadows(palette: Palette) {
 }
 
 export type Shadows = ReturnType<typeof makeShadows>;
-
-// ---------------------------------------------------------------------------
-// Layout
-// ---------------------------------------------------------------------------
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;

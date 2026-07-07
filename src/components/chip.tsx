@@ -5,6 +5,9 @@ import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/** Horizontal padding of the pill — 14, between Spacing.md (12) and Spacing.lg (16). */
+const PAD_X = 14;
+
 export interface ChipProps {
   children: string;
   onPress?: () => void;
@@ -43,9 +46,9 @@ const styles = StyleSheet.create({
   base: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs + 2,
+    gap: Spacing.xsPlus,
     height: 36,
-    paddingHorizontal: Spacing.lg - 2,
+    paddingHorizontal: PAD_X,
     borderRadius: Radius.pill,
     borderWidth: 1.5,
   },

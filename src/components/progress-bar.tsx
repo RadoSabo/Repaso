@@ -35,6 +35,8 @@ export function ProgressBar({
 
   return (
     <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max, now: value }}
       style={[
         styles.track,
         { height, borderRadius: Radius.pill, backgroundColor: trackColor ?? theme.surfaceSunk },

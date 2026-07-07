@@ -45,12 +45,11 @@
     "cardCount_other": "{{count}} tarjetas"
   },
   "onboarding": {
-    "step1Title": "Aprende palabras en contexto",
-    "step1Body": "Añade palabras o un tema — Repaso los convierte en frases reales con traducciones.",
-    "step2Title": "Escribe, habla o haz una foto",
-    "step2Body": "Añade vocabulario escribiendo, grabando tu voz o haciendo una foto.",
-    "step3Title": "Recuerda con la repetición",
-    "step3Body": "Te recordamos repasar en el momento justo, para que de verdad se quede.",
+    "steps": [
+      { "title": "Aprende palabras en contexto", "body": "Añade palabras o un tema — Repaso los convierte en frases reales con traducciones." },
+      { "title": "Escribe, habla o haz una foto", "body": "Añade vocabulario escribiendo, grabando tu voz o haciendo una foto." },
+      { "title": "Recuerda con la repetición", "body": "Te recordamos repasar en el momento justo, para que de verdad se quede." }
+    ],
     "start": "Empezar a aprender",
     "next": "Siguiente",
     "skip": "Omitir",
@@ -198,12 +197,11 @@
     "notice": "Cada mazo admite hasta {{max}} tarjetas."
   },
   "paywall": {
-    "benefit1Title": "Genera a partir de cualquier tema",
-    "benefit1Body": "Escribe una lista de palabras o describe un tema — obtén un mazo completo en segundos.",
-    "benefit2Title": "Haz una foto o dilo en voz alta",
-    "benefit2Body": "Convierte la página de un libro o tu voz directamente en tarjetas.",
-    "benefit3Title": "Generaciones ilimitadas",
-    "benefit3Body": "Sin límites diarios. Crea tantos mazos como necesites.",
+    "benefits": [
+      { "title": "Genera a partir de cualquier tema", "body": "Escribe una lista de palabras o describe un tema — obtén un mazo completo en segundos." },
+      { "title": "Haz una foto o dilo en voz alta", "body": "Convierte la página de un libro o tu voz directamente en tarjetas." },
+      { "title": "Generaciones ilimitadas", "body": "Sin límites diarios. Crea tantos mazos como necesites." }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "Genera mazos con IA",
     "heroSub": "Deja de escribir tarjetas a mano. Convierte cualquier tema, foto o lista de palabras en un mazo listo para estudiar.",
@@ -264,6 +262,7 @@
     "cannotRead": "No se pudo leer la grabación. Inténtalo de nuevo.",
     "cannotReach": "No se pudo conectar con el servidor de transcripción. Revisa tu conexión.",
     "proRequired": "Se necesita Repaso Pro para la entrada por voz.",
+    "rateLimited": "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
     "failed": "La transcripción falló (HTTP {{status}})."
   },
   "image": {

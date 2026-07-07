@@ -5,9 +5,9 @@
  */
 
 import { useMemo } from 'react';
+import { useColorScheme } from 'react-native';
 
 import { Colors, makeShadows, type Palette, type Shadows } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSettings } from '@/store/settings';
 
 export function useResolvedScheme(): 'light' | 'dark' {
@@ -26,6 +26,6 @@ export function useTheme(): Palette {
 
 /** Scheme-aware elevation tokens (brand-tinted shadows track the active brand). */
 export function useShadows(): Shadows {
-  const theme = useTheme();
-  return useMemo(() => makeShadows(theme), [theme]);
+  const scheme = useResolvedScheme();
+  return useMemo(() => makeShadows(Colors[scheme], scheme), [scheme]);
 }

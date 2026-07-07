@@ -1,5 +1,9 @@
+import { describe, expect, it } from '@jest/globals';
+import type { TFunction } from 'i18next';
+
 import {
   advanceSchedule,
+  dueLabel,
   dueStatus,
   insertAtRandom,
   intervalDaysForStage,
@@ -31,6 +35,12 @@ describe('advanceSchedule', () => {
     const last = REVIEW_INTERVALS_DAYS[REVIEW_INTERVALS_DAYS.length - 1];
     expect(huge.nextReviewAt).toBe(nowSec + last * DAY);
     expect(huge.reviewStage).toBe(1000);
+  });
+
+  it('clamps a negative stage to the first interval and stage 1', () => {
+    const s = advanceSchedule(-5, NOW);
+    expect(s.reviewStage).toBe(1);
+    expect(s.nextReviewAt).toBe(nowSec + REVIEW_INTERVALS_DAYS[0] * DAY);
   });
 });
 
@@ -95,6 +105,22 @@ describe('dueStatus', () => {
     expect(dueStatus(nowSec - 10, NOW)).toEqual({ kind: 'due' });
     expect(dueStatus(nowSec + DAY, NOW)).toEqual({ kind: 'days', days: 1 });
     expect(dueStatus(nowSec + 3 * DAY, NOW)).toEqual({ kind: 'days', days: 3 });
+  });
+});
+
+describe('dueLabel', () => {
+  // Stub translator: echoes the key, appending the count when one is passed.
+  const t = ((key: string, opts?: { count?: number }) =>
+    opts?.count != null ? `${key}:${opts.count}` : key) as unknown as TFunction;
+
+  it('labels never-reviewed and due decks as ready to review', () => {
+    expect(dueLabel(t, null, NOW)).toBe('schedule.review');
+    expect(dueLabel(t, nowSec - 10, NOW)).toBe('schedule.review');
+  });
+
+  it('labels future decks with the day count', () => {
+    expect(dueLabel(t, nowSec + DAY, NOW)).toBe('schedule.dueInDays:1');
+    expect(dueLabel(t, nowSec + 3 * DAY, NOW)).toBe('schedule.dueInDays:3');
   });
 });
 

@@ -2,6 +2,8 @@
 
 Mobile only: iOS and Android. **No web.** Don't add web-specific code, fallbacks, or `Platform.OS === 'web'` branches, and don't keep a feature working on web at the cost of complexity.
 
+The one sanctioned exception: the web export exists solely to host the `+api.ts` routes and the Terms/Privacy pages. That's why `react-dom`/`react-native-web` are dependencies, `_layout.tsx` short-circuits web to `WebUnavailable` (the only allowed `Platform.OS === 'web'` branch), and `src/store/settings.ts` falls back to in-memory storage during the Node static render. Don't extend web support beyond this.
+
 # Expo
 
 Expo has changed. Read the versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.

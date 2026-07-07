@@ -45,12 +45,11 @@
     "cardCount_other": "{{count}} carte"
   },
   "onboarding": {
-    "step1Title": "Impara le parole nel contesto",
-    "step1Body": "Inserisci parole o un argomento — Repaso le trasforma in frasi reali con traduzioni.",
-    "step2Title": "Scrivi, parla o scatta",
-    "step2Body": "Aggiungi vocaboli scrivendo, registrando la tua voce o scattando una foto.",
-    "step3Title": "Ricorda con la ripetizione",
-    "step3Body": "Ti ricordiamo di ripassare al momento giusto, così resta davvero in testa.",
+    "steps": [
+      { "title": "Impara le parole nel contesto", "body": "Inserisci parole o un argomento — Repaso le trasforma in frasi reali con traduzioni." },
+      { "title": "Scrivi, parla o scatta", "body": "Aggiungi vocaboli scrivendo, registrando la tua voce o scattando una foto." },
+      { "title": "Ricorda con la ripetizione", "body": "Ti ricordiamo di ripassare al momento giusto, così resta davvero in testa." }
+    ],
     "start": "Inizia a imparare",
     "next": "Avanti",
     "skip": "Salta",
@@ -198,12 +197,11 @@
     "notice": "Ogni mazzo contiene fino a {{max}} carte."
   },
   "paywall": {
-    "benefit1Title": "Genera da qualsiasi argomento",
-    "benefit1Body": "Scrivi una lista di parole o descrivi un tema — ottieni un mazzo completo in pochi secondi.",
-    "benefit2Title": "Scatta una foto o parla",
-    "benefit2Body": "Trasforma una pagina di libro o la tua voce direttamente in flashcard.",
-    "benefit3Title": "Generazioni illimitate",
-    "benefit3Body": "Nessun limite giornaliero. Crea tutti i mazzi che ti servono.",
+    "benefits": [
+      { "title": "Genera da qualsiasi argomento", "body": "Scrivi una lista di parole o descrivi un tema — ottieni un mazzo completo in pochi secondi." },
+      { "title": "Scatta una foto o parla", "body": "Trasforma una pagina di libro o la tua voce direttamente in flashcard." },
+      { "title": "Generazioni illimitate", "body": "Nessun limite giornaliero. Crea tutti i mazzi che ti servono." }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "Genera mazzi con l'IA",
     "heroSub": "Basta scrivere carte a mano. Trasforma qualsiasi argomento, foto o lista di parole in un mazzo pronto da studiare.",
@@ -264,6 +262,7 @@
     "cannotRead": "Impossibile leggere la registrazione. Riprova.",
     "cannotReach": "Impossibile raggiungere il server di trascrizione. Controlla la connessione.",
     "proRequired": "Repaso Pro è necessario per l'input vocale.",
+    "rateLimited": "Troppe richieste. Attendi un momento e riprova.",
     "failed": "Trascrizione non riuscita (HTTP {{status}})."
   },
   "image": {

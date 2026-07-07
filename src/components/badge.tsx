@@ -15,6 +15,11 @@ export interface BadgeProps {
   style?: ViewStyle;
 }
 
+const SIZES: Record<NonNullable<BadgeProps['size']>, { padX: number; padY: number; icon: number }> = {
+  sm: { padX: Spacing.sm, padY: 2, icon: 12 },
+  md: { padX: 11, padY: 4, icon: 13 },
+};
+
 const TONES: Record<BadgeTone, { bg: ThemeColor; fg: ThemeColor }> = {
   neutral: { bg: 'surfaceSunk', fg: 'textSecondary' },
   brand: { bg: 'brandSoft', fg: 'brandContrast' },
@@ -29,7 +34,7 @@ export function Badge({ children, tone = 'neutral', icon, size = 'md', style }: 
   const theme = useTheme();
   const t = TONES[tone];
   const fg = theme[t.fg];
-  const dims = size === 'sm' ? { padX: Spacing.sm, padY: 2, icon: 12 } : { padX: 11, padY: 4, icon: 13 };
+  const dims = SIZES[size];
 
   return (
     <View

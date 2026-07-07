@@ -17,7 +17,7 @@ export function confirmDeleteDeck(deckId: number, deckName: string, onDeleted?: 
       text: i18n.t('common.delete'),
       style: 'destructive',
       onPress: () => {
-        cancelReminder(getDeck(deckId)?.notificationId);
+        void cancelReminder(getDeck(deckId)?.notificationId);
         deleteDeck(deckId);
         onDeleted?.();
       },

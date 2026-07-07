@@ -8,7 +8,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-import { createCards, createDeck, getAllDecksWithCards } from '@/db/queries';
+import { createCards, createDeck, getAllDecksWithCards, withTransaction } from '@/db/queries';
 import i18n from '@/i18n';
 import { MAX_CARDS_PER_DECK } from './limits';
 
@@ -84,28 +84,33 @@ export async function importDecks(): Promise<number> {
   } catch {
     throw new DeckTransferError(i18n.t('transfer.invalidFile'));
   }
-  if (!parsed || !Array.isArray(parsed.decks)) {
+  if (!parsed || typeof parsed.version !== 'number' || !Array.isArray(parsed.decks)) {
     throw new DeckTransferError(i18n.t('transfer.invalidFile'));
   }
   if (parsed.version > TRANSFER_VERSION) {
     throw new DeckTransferError(i18n.t('transfer.newerVersion'));
   }
 
-  let imported = 0;
-  for (const d of parsed.decks) {
-    if (!d || typeof d.name !== 'string') continue;
-    const deck = createDeck({
-      name: d.name.trim() || i18n.t('transfer.importedDeckName'),
-      description: typeof d.description === 'string' ? d.description : undefined,
-      knownLang: typeof d.knownLang === 'string' && d.knownLang ? d.knownLang : 'English',
-      targetLang: typeof d.targetLang === 'string' && d.targetLang ? d.targetLang : 'Spanish',
-    });
-    const cards = (Array.isArray(d.cards) ? d.cards : [])
-      .map((c) => ({ front: String(c?.front ?? ''), back: String(c?.back ?? '') }))
-      .filter((c) => c.front.trim() && c.back.trim())
-      .slice(0, MAX_CARDS_PER_DECK);
-    if (cards.length > 0) createCards(deck.id, cards, 'manual');
-    imported += 1;
-  }
-  return imported;
+  // One transaction so a mid-import crash can't leave partial data behind.
+  return withTransaction(() => {
+    let imported = 0;
+    for (const d of parsed.decks) {
+      if (!d || typeof d.name !== 'string') continue;
+      const cards = (Array.isArray(d.cards) ? d.cards : [])
+        .map((c) => ({ front: String(c?.front ?? ''), back: String(c?.back ?? '') }))
+        .filter((c) => c.front.trim() && c.back.trim())
+        .slice(0, MAX_CARDS_PER_DECK);
+      // A deck whose cards were all filtered out isn't worth importing.
+      if (cards.length === 0) continue;
+      const deck = createDeck({
+        name: d.name.trim() || i18n.t('transfer.importedDeckName'),
+        description: typeof d.description === 'string' ? d.description : undefined,
+        knownLang: typeof d.knownLang === 'string' && d.knownLang ? d.knownLang : 'English',
+        targetLang: typeof d.targetLang === 'string' && d.targetLang ? d.targetLang : 'Spanish',
+      });
+      createCards(deck.id, cards, 'manual');
+      imported += 1;
+    }
+    return imported;
+  });
 }

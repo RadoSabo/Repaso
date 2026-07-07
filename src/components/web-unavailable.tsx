@@ -6,8 +6,12 @@
  */
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Colors } from '@/constants/theme';
 import { PRIVACY_URL, TERMS_URL } from '@/lib/config';
 
+// English-only strings are intentional: this page renders only on the web
+// export, which exists solely to host the API routes — i18n is not
+// initialized there.
 export function WebUnavailable() {
   return (
     <View style={styles.container}>
@@ -37,11 +41,11 @@ export function WebUnavailable() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#F4F8F7' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: Colors.light.bg },
   card: { maxWidth: 420, alignItems: 'center', gap: 12 },
-  title: { fontSize: 28, fontWeight: '700', color: '#EA6212' },
-  body: { fontSize: 16, lineHeight: 24, color: '#4D5955', textAlign: 'center' },
+  title: { fontSize: 28, fontWeight: '700', color: Colors.light.brand },
+  body: { fontSize: 16, lineHeight: 24, color: Colors.light.textSecondary, textAlign: 'center' },
   links: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  link: { fontSize: 14, color: '#EA6212' },
-  dot: { fontSize: 14, color: '#697672' },
+  link: { fontSize: 14, color: Colors.light.brand },
+  dot: { fontSize: 14, color: Colors.light.textMuted },
 });

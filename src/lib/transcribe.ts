@@ -14,17 +14,11 @@
 import { File } from 'expo-file-system';
 
 import i18n from '@/i18n';
-import { PROXY_URL } from './config';
+import { postToProxy, ProxyError } from './proxy-request';
 import { getAppUserId } from './revenuecat';
 
-export class TranscriptionError extends Error {
-  /** True when the server requires Repaso Pro — route to the paywall. */
-  readonly paywall: boolean;
-  constructor(message: string, options?: { paywall?: boolean }) {
-    super(message);
-    this.paywall = options?.paywall ?? false;
-  }
-}
+/** `paywall` is true when the server requires Repaso Pro — route to the paywall. */
+export class TranscriptionError extends ProxyError {}
 
 /**
  * Reads a recorded audio file (by local URI) and uploads it to the proxy,
@@ -41,29 +35,15 @@ export async function transcribeAudio(uri: string): Promise<string> {
 
   const appUserId = await getAppUserId().catch(() => '');
 
-  let res: Response;
-  try {
-    res = await fetch(`${PROXY_URL}/api/transcribe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audioBase64, mimeType: 'audio/m4a', appUserId }),
-    });
-  } catch (e) {
-    console.warn('[transcribe] upload failed', { uri, error: e });
-    throw new TranscriptionError(i18n.t('transcribe.cannotReach'));
-  }
+  const data = await postToProxy<{ text?: string }>({
+    path: '/api/transcribe',
+    body: { audioBase64, mimeType: 'audio/m4a', appUserId },
+    error: TranscriptionError,
+    cannotReachKey: 'transcribe.cannotReach',
+    paywallKey: 'transcribe.proRequired',
+    rateLimitedKey: 'transcribe.rateLimited',
+    failedKey: 'transcribe.failed',
+  });
 
-  if (!res.ok) {
-    if (res.status === 402) {
-      throw new TranscriptionError(i18n.t('transcribe.proRequired'), { paywall: true });
-    }
-    if (res.status === 429) {
-      throw new TranscriptionError(i18n.t('gen.rateLimited'));
-    }
-    const detail = await res.text().catch(() => '');
-    throw new TranscriptionError(detail || i18n.t('transcribe.failed', { status: res.status }));
-  }
-
-  const data = (await res.json().catch(() => null)) as { text?: string } | null;
   return (data?.text ?? '').trim();
 }

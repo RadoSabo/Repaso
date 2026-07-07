@@ -16,6 +16,9 @@ import type { Card as CardRow } from '@/db/schema';
 import { confirmDeleteCard, confirmDeleteDeck } from '@/lib/deck-actions';
 import { dueLabel, isDue } from '@/lib/scheduling';
 
+/** Tighter than Spacing.md so the sunk card rows read as one list. */
+const SEPARATOR_HEIGHT = 10;
+
 export default function DeckDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const deckId = Number(id);
@@ -51,7 +54,11 @@ export default function DeckDetailScreen() {
         options={{
           title: deck.name,
           headerRight: () => (
-            <Pressable hitSlop={12} onPress={() => router.push(`/deck/${deckId}/edit`)}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.edit')}
+              hitSlop={12}
+              onPress={() => router.push(`/deck/${deckId}/edit`)}>
               <ThemedText type="smBold" themeColor="brandContrast">
                 {t('common.edit')}
               </ThemedText>
@@ -137,6 +144,8 @@ export default function DeckDetailScreen() {
           onPress={() => router.push(`/deck/${deckId}/review`)}
         />
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('deckDetail.deleteDeck')}
           onPress={() => confirmDeleteDeck(deck.id, deck.name, () => router.back())}
           style={styles.deleteBtn}
           hitSlop={8}>
@@ -160,7 +169,7 @@ const styles = StyleSheet.create({
   summaryMeta: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing.lg, flexGrow: 1 },
-  separator: { height: Spacing.md - 2 },
+  separator: { height: SEPARATOR_HEIGHT },
   cardFront: { marginBottom: 3 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xxxl },
   emptyText: { textAlign: 'center' },

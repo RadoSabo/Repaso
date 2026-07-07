@@ -43,12 +43,11 @@
     "cardCount_other": "{{count}} cards"
   },
   "onboarding": {
-    "step1Title": "Learn words in context",
-    "step1Body": "Drop in words or a topic — Repaso turns them into real sentences with translations.",
-    "step2Title": "Type, speak, or snap",
-    "step2Body": "Add vocabulary by typing, recording your voice, or taking a photo.",
-    "step3Title": "Remember with repetition",
-    "step3Body": "We remind you to review at just the right time, so it actually sticks.",
+    "steps": [
+      { "title": "Learn words in context", "body": "Drop in words or a topic — Repaso turns them into real sentences with translations." },
+      { "title": "Type, speak, or snap", "body": "Add vocabulary by typing, recording your voice, or taking a photo." },
+      { "title": "Remember with repetition", "body": "We remind you to review at just the right time, so it actually sticks." }
+    ],
     "start": "Start learning",
     "next": "Next",
     "skip": "Skip",
@@ -189,12 +188,11 @@
     "notice": "Each deck holds up to {{max}} cards."
   },
   "paywall": {
-    "benefit1Title": "Generate from any topic",
-    "benefit1Body": "Type a word list or describe a subject — get a full deck in seconds.",
-    "benefit2Title": "Snap a photo or speak it",
-    "benefit2Body": "Turn a textbook page or your voice straight into flashcards.",
-    "benefit3Title": "Unlimited generations",
-    "benefit3Body": "No daily caps. Build as many decks as you need.",
+    "benefits": [
+      { "title": "Generate from any topic", "body": "Type a word list or describe a subject — get a full deck in seconds." },
+      { "title": "Snap a photo or speak it", "body": "Turn a textbook page or your voice straight into flashcards." },
+      { "title": "Unlimited generations", "body": "No daily caps. Build as many decks as you need." }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "Generate decks with AI",
     "heroSub": "Stop typing cards by hand. Turn any topic, photo, or word list into a ready-to-study deck.",
@@ -254,6 +252,7 @@
     "cannotRead": "Could not read the recording. Try again.",
     "cannotReach": "Could not reach the transcription server. Check your connection.",
     "proRequired": "Repaso Pro is required for voice input.",
+    "rateLimited": "Rate limited. Please wait a moment and try again.",
     "failed": "Transcription failed (HTTP {{status}})."
   },
   "image": {

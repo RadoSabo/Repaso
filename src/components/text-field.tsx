@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { FontFamily, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type TextFieldProps = TextInputProps & {
@@ -65,11 +65,10 @@ export function TextField({
 const styles = StyleSheet.create({
   label: { marginBottom: Spacing.sm },
   input: {
+    ...Typography.body,
     borderWidth: 1.5,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.lg,
-    fontFamily: FontFamily.body,
-    fontSize: 16,
   },
   single: { height: 52 },
   multiline: {
@@ -77,7 +76,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
     textAlignVertical: 'top',
-    lineHeight: 23,
   },
-  helper: { marginTop: Spacing.xs + 2 },
+  helper: { marginTop: Spacing.xsPlus },
 });

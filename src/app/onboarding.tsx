@@ -25,6 +25,9 @@ const STEP_ICONS: readonly IconName[] = ['sparkle', 'microphone', 'refresh'];
 
 const ICON_TILE = 132;
 
+/** Slightly wider than Spacing.sm so the brand mark clears the wordmark. */
+const HEADER_GAP = 10;
+
 export default function OnboardingScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -32,10 +35,10 @@ export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const setOnboarded = useSettings((s) => s.setOnboarded);
 
+  const stepTexts = t('onboarding.steps', { returnObjects: true }) as Omit<Step, 'icon'>[];
   const steps: readonly Step[] = STEP_ICONS.map((icon, i) => ({
     icon,
-    title: t(`onboarding.step${i + 1}Title`),
-    body: t(`onboarding.step${i + 1}Body`),
+    ...stepTexts[i],
   }));
 
   const [index, setIndex] = useState(0);
@@ -115,7 +118,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm + 2,
+    gap: HEADER_GAP,
     paddingHorizontal: Spacing.xxl,
   },
   body: {

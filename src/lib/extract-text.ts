@@ -7,18 +7,11 @@
  * the normal card generation runs on it.
  */
 
-import i18n from '@/i18n';
-import { PROXY_URL } from './config';
+import { postToProxy, ProxyError } from './proxy-request';
 import { getAppUserId } from './revenuecat';
 
-export class ImageTextError extends Error {
-  /** True when the server requires Repaso Pro — route to the paywall. */
-  readonly paywall: boolean;
-  constructor(message: string, options?: { paywall?: boolean }) {
-    super(message);
-    this.paywall = options?.paywall ?? false;
-  }
-}
+/** `paywall` is true when the server requires Repaso Pro — route to the paywall. */
+export class ImageTextError extends ProxyError {}
 
 export interface ExtractTextOptions {
   /** Base64-encoded image data (no data-URL prefix), from expo-image-picker. */
@@ -31,28 +24,15 @@ export interface ExtractTextOptions {
 export async function extractTextFromImage({ base64, mimeType }: ExtractTextOptions): Promise<string> {
   const appUserId = await getAppUserId().catch(() => '');
 
-  let res: Response;
-  try {
-    res = await fetch(`${PROXY_URL}/api/extract-text`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64: base64, mimeType: mimeType ?? 'image/jpeg', appUserId }),
-    });
-  } catch {
-    throw new ImageTextError(i18n.t('extract.cannotReach'));
-  }
+  const data = await postToProxy<{ text?: string }>({
+    path: '/api/extract-text',
+    body: { imageBase64: base64, mimeType: mimeType ?? 'image/jpeg', appUserId },
+    error: ImageTextError,
+    cannotReachKey: 'extract.cannotReach',
+    paywallKey: 'extract.proRequired',
+    rateLimitedKey: 'extract.rateLimited',
+    failedKey: 'extract.failed',
+  });
 
-  if (!res.ok) {
-    if (res.status === 402) {
-      throw new ImageTextError(i18n.t('extract.proRequired'), { paywall: true });
-    }
-    if (res.status === 429) {
-      throw new ImageTextError(i18n.t('extract.rateLimited'));
-    }
-    const detail = await res.text().catch(() => '');
-    throw new ImageTextError(detail || i18n.t('extract.failed', { status: res.status }));
-  }
-
-  const data = (await res.json().catch(() => null)) as { text?: string } | null;
   return (data?.text ?? '').trim();
 }

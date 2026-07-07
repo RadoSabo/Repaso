@@ -45,12 +45,11 @@
     "cardCount_other": "{{count}} cartões"
   },
   "onboarding": {
-    "step1Title": "Aprenda palavras em contexto",
-    "step1Body": "Digite palavras ou um tema — o Repaso as transforma em frases reais com traduções.",
-    "step2Title": "Digite, fale ou fotografe",
-    "step2Body": "Adicione vocabulário digitando, gravando sua voz ou tirando uma foto.",
-    "step3Title": "Memorize com repetição",
-    "step3Body": "Lembramos você de revisar na hora certa, para realmente fixar.",
+    "steps": [
+      { "title": "Aprenda palavras em contexto", "body": "Digite palavras ou um tema — o Repaso as transforma em frases reais com traduções." },
+      { "title": "Digite, fale ou fotografe", "body": "Adicione vocabulário digitando, gravando sua voz ou tirando uma foto." },
+      { "title": "Memorize com repetição", "body": "Lembramos você de revisar na hora certa, para realmente fixar." }
+    ],
     "start": "Começar a aprender",
     "next": "Avançar",
     "skip": "Pular",
@@ -198,12 +197,11 @@
     "notice": "Cada baralho comporta até {{max}} cartões."
   },
   "paywall": {
-    "benefit1Title": "Gere a partir de qualquer tema",
-    "benefit1Body": "Digite uma lista de palavras ou descreva um assunto — receba um baralho completo em segundos.",
-    "benefit2Title": "Fotografe ou fale",
-    "benefit2Body": "Transforme a página de um livro ou sua voz direto em flashcards.",
-    "benefit3Title": "Gerações ilimitadas",
-    "benefit3Body": "Sem limites diários. Crie quantos baralhos precisar.",
+    "benefits": [
+      { "title": "Gere a partir de qualquer tema", "body": "Digite uma lista de palavras ou descreva um assunto — receba um baralho completo em segundos." },
+      { "title": "Fotografe ou fale", "body": "Transforme a página de um livro ou sua voz direto em flashcards." },
+      { "title": "Gerações ilimitadas", "body": "Sem limites diários. Crie quantos baralhos precisar." }
+    ],
     "pro": "Repaso Pro",
     "heroTitle": "Gere baralhos com IA",
     "heroSub": "Pare de digitar cartões à mão. Transforme qualquer tema, foto ou lista de palavras em um baralho pronto para estudar.",
@@ -264,6 +262,7 @@
     "cannotRead": "Não foi possível ler a gravação. Tente novamente.",
     "cannotReach": "Não foi possível conectar ao servidor de transcrição. Verifique sua conexão.",
     "proRequired": "O Repaso Pro é necessário para entrada por voz.",
+    "rateLimited": "Limite de uso atingido. Aguarde um momento e tente novamente.",
     "failed": "Falha na transcrição (HTTP {{status}})."
   },
   "image": {

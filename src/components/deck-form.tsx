@@ -35,7 +35,8 @@ export function DeckForm({
   const [knownLang, setKnownLang] = useState(initial.knownLang);
   const [targetLang, setTargetLang] = useState(initial.targetLang);
 
-  const canSubmit = name.trim().length > 0 && knownLang.trim() && targetLang.trim();
+  const canSubmit =
+    name.trim().length > 0 && knownLang.trim().length > 0 && targetLang.trim().length > 0;
 
   return (
     <KeyboardAvoidingView

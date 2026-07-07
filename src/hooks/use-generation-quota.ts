@@ -3,7 +3,7 @@
  * can show "X left" and pre-empt a generation that would be rejected. The server
  * is the real gate; this is display + a fast local guard. Pro users bypass it.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { PROXY_URL } from '@/lib/config';
 import { getDeviceId } from '@/lib/device-id';
@@ -33,26 +33,22 @@ async function fetchRemaining(): Promise<number | null> {
 
 export function useGenerationQuota(isPro: boolean): GenerationQuota {
   const [remaining, setRemaining] = useState(FREE_GENERATIONS);
+  // Monotonic request id: only the latest fetch may write, so a stale slow
+  // response can never overwrite a newer one.
+  const requestId = useRef(0);
 
   const refresh = useCallback(() => {
     if (isPro) return;
+    const id = ++requestId.current;
     void (async () => {
       const value = await fetchRemaining();
-      if (value != null) setRemaining(value);
+      if (id === requestId.current && value != null) setRemaining(value);
     })();
   }, [isPro]);
 
   useEffect(() => {
-    if (isPro) return;
-    let active = true;
-    void (async () => {
-      const value = await fetchRemaining();
-      if (active && value != null) setRemaining(value);
-    })();
-    return () => {
-      active = false;
-    };
-  }, [isPro]);
+    refresh();
+  }, [refresh]);
 
   return {
     remaining,

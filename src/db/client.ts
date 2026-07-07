@@ -8,7 +8,11 @@ const expoDb = openDatabaseSync(DATABASE_NAME, { enableChangeListener: true });
 
 export const db = drizzle(expoDb);
 
-/** Adds a column to a table if it isn't already present (lightweight migration). */
+/**
+ * Adds a column to a table if it isn't already present (lightweight migration).
+ * Identifiers are interpolated into raw SQL — pass only compile-time literal
+ * table/column names, never user input.
+ */
 function ensureColumn(table: string, column: string, ddl: string) {
   const cols = expoDb.getAllSync<{ name: string }>(`PRAGMA table_info(${table})`);
   if (!cols.some((c) => c.name === column)) {

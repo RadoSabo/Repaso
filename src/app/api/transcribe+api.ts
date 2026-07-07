@@ -20,6 +20,20 @@ const OPENAI_TRANSCRIBE_URL = 'https://api.openai.com/v1/audio/transcriptions';
 // A 60s recording is ~1 MB (~1.4M base64 chars); OpenAI accepts up to 25 MB.
 const MAX_AUDIO_BASE64_CHARS = 34_000_000;
 
+// OpenAI infers the audio container from the filename extension, so it must
+// match the actual encoding the client reports.
+const EXTENSION_BY_MIME: Record<string, string> = {
+  'audio/m4a': 'm4a',
+  'audio/x-m4a': 'm4a',
+  'audio/mp4': 'm4a',
+  'audio/mpeg': 'mp3',
+  'audio/mp3': 'mp3',
+  'audio/wav': 'wav',
+  'audio/webm': 'webm',
+  'audio/ogg': 'ogg',
+};
+const DEFAULT_EXTENSION = 'm4a';
+
 // `new FormData()` on the server runtime is web-spec, but the ambient React
 // Native types ship a stripped 2-arg `append`, so describe the web shape here.
 type AppendableFormData = { append(name: string, value: unknown, filename?: string): void };
@@ -66,7 +80,8 @@ export async function POST(request: Request): Promise<Response> {
   const model = process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-4o-mini-transcribe';
   const upstream = new FormData();
   const appendable = upstream as unknown as AppendableFormData;
-  appendable.append('file', audioBlob, 'recording.m4a');
+  const extension = EXTENSION_BY_MIME[mimeType.toLowerCase()] ?? DEFAULT_EXTENSION;
+  appendable.append('file', audioBlob, `recording.${extension}`);
   appendable.append('model', model);
   appendable.append('response_format', 'json');
 

@@ -7,6 +7,9 @@ import { useTheme } from '@/hooks/use-theme';
 
 const ICON_SIZE = 19;
 const LOCK_SIZE = 13;
+// Mirror Button `md` sizing so the control lines up next to md Buttons.
+const HEIGHT = 50;
+const FONT_SIZE = 15;
 
 export interface InputMethodButtonProps {
   icon: IconName;
@@ -61,7 +64,7 @@ export function InputMethodButton({
       ) : (
         <Icon name={icon} size={ICON_SIZE} color={fg} />
       )}
-      <ThemedText type="smBold" numberOfLines={1} style={{ color: fg, fontSize: 15 }}>
+      <ThemedText type="smBold" numberOfLines={1} style={{ color: fg, fontSize: FONT_SIZE }}>
         {label}
       </ThemedText>
       {locked ? (
@@ -80,7 +83,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
-    height: 50,
+    height: HEIGHT,
     paddingHorizontal: Spacing.lg,
     borderRadius: Radius.md,
   },

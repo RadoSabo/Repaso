@@ -65,9 +65,18 @@ export function hasUnlimitedEntitlement(): boolean {
 export function configureRevenueCat(): void {
   if (!API_KEY) return;
   Purchases.configure({ apiKey: API_KEY });
-  Purchases.addCustomerInfoUpdateListener(setCustomerInfo);
-  // Prime the store so the first entitlement read reflects the cached state.
-  Purchases.getCustomerInfo().then(setCustomerInfo).catch(() => {});
+  let listenerFired = false;
+  Purchases.addCustomerInfoUpdateListener((info) => {
+    listenerFired = true;
+    setCustomerInfo(info);
+  });
+  // Prime the store so the first entitlement read reflects the cached state —
+  // unless the listener already delivered fresher info while this was in flight.
+  Purchases.getCustomerInfo()
+    .then((info) => {
+      if (!listenerFired) setCustomerInfo(info);
+    })
+    .catch(() => {});
 }
 
 // --- Helpers for the paywall ----------------------------------------------
