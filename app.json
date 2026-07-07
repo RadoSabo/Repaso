@@ -19,7 +19,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "app.repaso",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "output": "server",
