@@ -14,15 +14,18 @@ Package: `app.repaso` · Default store language: **English (United States)**
 - Subscriptions created in Play (`repaso_pro_monthly` / `repaso1m`, `repaso_pro_yearly` / `repaso1y`), active
 - RevenueCat fully wired: products published, entitlement **`Repaso Unlimited`**, **`default`** offering with Monthly (`$rc_monthly`) + Yearly (`$rc_annual`)
 - License testing working (test purchases via "Test card, always approves")
+- Real brand app icon + splash in the app (replaced Expo template assets)
+- Store icon (512²) + feature graphic (1024×500) generated → `docs/store-assets/`
+- `eas submit` automation: `npm run release:android` builds + submits to internal
+- Repo housekeeping: all changes committed; versionCode auto-increments
 
 **⏳ Remaining (this doc)**
-1. Graphic assets (store listing)
-2. Store listing texts
+1. Phone screenshots (store listing)
+2. Store listing texts — paste §3 into the console
 3. Subscription texts (yearly still to finish)
 4. Content & compliance forms (App content section)
 5. Closed testing: 12 testers × 14 days
 6. Create Production release → submit for review
-7. Repo housekeeping (commit, version)
 
 ---
 
@@ -32,8 +35,8 @@ All uploaded in **Play Console**, NOT in the repo. Specs are Google's hard requi
 
 | Asset | Spec | Required? | Notes |
 |---|---|---|---|
-| **App icon** | **512 × 512 px**, 32-bit PNG, ≤ 1 MB, no alpha transparency for the store icon | ✅ Yes | Your in-app icon is `assets/images/icon.png` — export a 512×512 version for the store. |
-| **Feature graphic** | **1024 × 500 px**, PNG or JPG, no alpha | ✅ Yes | Banner shown at top of listing. Put the app name + a tagline + the icon/visual. |
+| **App icon** | **512 × 512 px**, 32-bit PNG, ≤ 1 MB, no alpha transparency for the store icon | ✅ Ready | `docs/store-assets/play-store-icon-512.png` — upload it. |
+| **Feature graphic** | **1024 × 500 px**, PNG or JPG, no alpha | ✅ Ready | `docs/store-assets/play-feature-graphic-1024x500.png` — upload it. |
 | **Phone screenshots** | 2–8 images, PNG/JPG, 16:9 or 9:16, each side **320–3840 px** | ✅ Yes (min 2, ideally 4–6) | Real screens from the app (see §1.1). |
 | **7-inch tablet screenshots** | up to 8 | Optional | Skip unless you want tablet placement. |
 | **10-inch tablet screenshots** | up to 8 | Optional | Skip for now. |
@@ -62,15 +65,13 @@ These are **separate** from the store assets above. They're already configured i
 | Android adaptive icon — foreground | `assets/images/android-icon-foreground.png` | ✅ set |
 | Android adaptive icon — background | `assets/images/android-icon-background.png` | ✅ set |
 | Android adaptive icon — monochrome | `assets/images/android-icon-monochrome.png` | ✅ set |
-| Android adaptive icon — background color | `#E6F4FE` | ✅ set |
-| Splash screen image | `assets/images/splash-icon.png` (width 76) | ✅ set |
+| Android adaptive icon — background color | `#EA6212` (brand orange) | ✅ set |
+| Splash screen image | `assets/images/splash-icon.png` (width 160, both platforms) | ✅ set |
 | Splash background color | `#EA6212` (brand orange) | ✅ set |
 
-**⚠️ iOS only (not blocking Android launch):** `app.json` has `ios.icon: "./assets/expo.icon"`, which looks like a leftover/placeholder path. Before any iOS build, set a proper iOS icon (a 1024×1024 PNG) or remove that line so it falls back to the shared `icon`. Not needed for the Play Store launch.
-
-**Android icon guidance:** the adaptive foreground art should sit within the safe zone (logo not too close to edges) since Android masks it into circles/squares. If your current icon looks cropped on a device, regenerate the foreground with more padding.
-
-No action needed here for Android unless the icon/splash look wrong on your test device.
+All assets are generated from the BrandMark design (SparkGradient + cards glyph)
+and the adaptive foreground sits inside the 66% safe zone. Verify on your test
+device once the new build lands; regenerate via the brand-asset script if needed.
 
 ---
 
