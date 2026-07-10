@@ -1,9 +1,11 @@
 /**
- * Server-only proxy for reading text out of an image (Pro-only input method).
+ * Server-only proxy for reading study material out of an image (Pro-only input).
  *
  * The app sends a base64 image; this route asks a multimodal model to return the
- * human-readable text it sees, which the app drops into the generation field for
- * the user to confirm. The OpenAI key never leaves the server.
+ * words/phrases worth learning from it — verbatim when the photo is already a
+ * word or sentence list, but only the key vocabulary when it is prose (a story,
+ * an article, a contract). The result drops into the generation field for the
+ * user to confirm. The OpenAI key never leaves the server.
  *   OPENAI_API_KEY    (required)  secret key, server-side only
  *   OPENAI_VISION_MODEL (optional) defaults to OPENAI_MODEL, then "gpt-5.4-nano"
  *
@@ -19,10 +21,20 @@ import { clientIp, json, OPENAI_CHAT_URL, rateLimited, requirePro } from '@/lib/
 const MAX_IMAGE_BASE64_CHARS = 8_000_000;
 
 const SYSTEM_PROMPT =
-  'You extract text from images. Return ONLY the human-readable text visible in ' +
-  'the image, preserving line breaks. Do not translate, summarize, describe the ' +
-  'image, or add any commentary. If there is no meaningful text, return an empty ' +
-  'string.';
+  'You turn a photo of text into study material for a language learner. Output ' +
+  'one item per line — a single word or a single sentence — with no numbering, ' +
+  'bullets, quotes, or commentary.\n' +
+  'Decide from the content:\n' +
+  '- If the image is already a study list (words or short phrases separated by ' +
+  'commas or line breaks, or sentences each on their own line), return every ' +
+  'item verbatim, one per line.\n' +
+  '- If the image is running prose (a story, an article, notes in paragraphs, a ' +
+  'contract), do NOT return the whole text. Extract only the important, ' +
+  'meaningful words or short phrases worth learning, one per line, and skip ' +
+  'common filler and function words.\n' +
+  'Keep every item in its original language; never translate. Preserve the ' +
+  'original wording and diacritics. If there is no meaningful text, return an ' +
+  'empty string.';
 
 export async function POST(request: Request): Promise<Response> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -73,7 +85,7 @@ export async function POST(request: Request): Promise<Response> {
           {
             role: 'user',
             content: [
-              { type: 'text', text: 'Extract the text from this image.' },
+              { type: 'text', text: 'Extract the words worth learning from this image.' },
               { type: 'image_url', image_url: { url: dataUrl } },
             ],
           },
