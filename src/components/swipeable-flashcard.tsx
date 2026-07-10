@@ -32,6 +32,12 @@ const FLIP_PERSPECTIVE = 1000;
 const PEEK_SCALE = 0.96;
 /** Strongest the green/red answer tint gets at the commit threshold. */
 const TINT_MAX_OPACITY = 0.55;
+/**
+ * Peek opacity at the commit threshold — translucent so the next card reads as
+ * dimmed/inactive; it then eases to 1 as the top card flies off, so the swap to
+ * the real top card is seamless.
+ */
+const PEEK_THRESHOLD_OPACITY = 0.7;
 
 export interface SwipeableFlashcardHandle {
   /** Fling the card off-screen and resolve the answer (used by the answer buttons). */
@@ -103,7 +109,12 @@ export const SwipeableFlashcard = forwardRef<SwipeableFlashcardHandle, Swipeable
     const peekStyle = useAnimatedStyle(() => {
       const drag = Math.abs(translateX.value);
       return {
-        opacity: interpolate(drag, [0, threshold], [0, 1], Extrapolation.CLAMP),
+        opacity: interpolate(
+          drag,
+          [0, threshold, width],
+          [0, PEEK_THRESHOLD_OPACITY, 1],
+          Extrapolation.CLAMP,
+        ),
         transform: [{ scale: interpolate(drag, [0, threshold], [PEEK_SCALE, 1], Extrapolation.CLAMP) }],
       };
     });
@@ -147,7 +158,7 @@ export const SwipeableFlashcard = forwardRef<SwipeableFlashcardHandle, Swipeable
         <Animated.View style={StyleSheet.absoluteFill}>
           {upcoming ? (
             <Animated.View style={[styles.fill, peekStyle]}>
-              <Flashcard card={upcoming} deck={deck} flipped={false} />
+              <Flashcard card={upcoming} deck={deck} flipped={false} style={styles.peekCard} />
             </Animated.View>
           ) : null}
 
@@ -178,4 +189,7 @@ const styles = StyleSheet.create({
     backfaceVisibility: 'hidden',
   },
   tint: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: Radius.xxl },
+  // No shadow on the peek card: it renders translucent, and Android elevation
+  // shadows don't fade with opacity — they bleed through as a thick grey rim.
+  peekCard: { elevation: 0, shadowOpacity: 0 },
 });
