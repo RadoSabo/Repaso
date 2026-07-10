@@ -54,8 +54,9 @@ interface SwipeableFlashcardProps {
  * threshold flings it off-screen and resolves the answer (right = knew it, left =
  * missed), tinting the card green or red as it travels. The answer buttons drive
  * the same fling via the imperative `fling` handle. The next card fades in only
- * while dragging, so a flip never reveals it. Mount one per card with
- * `key={card.id}`: each instance owns its own flip/drag state.
+ * while dragging, so a flip never reveals it. Mount one instance per presentation
+ * with a key that is unique per turn (not just `card.id` — a missed card can
+ * reappear immediately): each instance owns its own flip/drag state.
  */
 export const SwipeableFlashcard = forwardRef<SwipeableFlashcardHandle, SwipeableFlashcardProps>(
   function SwipeableFlashcard({ card, upcoming, deck, width, onAnswer }, ref) {

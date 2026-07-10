@@ -91,7 +91,9 @@ export default function ReviewScreen() {
         <View style={styles.stack}>
           <SwipeableFlashcard
             ref={cardRef}
-            key={current.id}
+            // Keyed by turn, not just id: a missed card can be reinserted as the very
+            // next card, and it must still get a fresh instance (fresh drag/flip state).
+            key={`${current.id}-${knew + missed}`}
             card={current}
             upcoming={upcoming}
             deck={deck}
