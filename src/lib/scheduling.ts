@@ -106,10 +106,3 @@ export function shuffle<T>(input: readonly T[]): T[] {
   }
   return arr;
 }
-
-/** Inserts `item` at a random position. Returns a new array; does not mutate. */
-export function insertAtRandom<T>(arr: readonly T[], item: T): T[] {
-  const copy = arr.slice();
-  copy.splice(Math.floor(Math.random() * (copy.length + 1)), 0, item);
-  return copy;
-}

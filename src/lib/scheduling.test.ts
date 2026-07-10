@@ -5,7 +5,6 @@ import {
   advanceSchedule,
   dueLabel,
   dueStatus,
-  insertAtRandom,
   intervalDaysForStage,
   isDue,
   REVIEW_INTERVALS_DAYS,
@@ -131,15 +130,5 @@ describe('shuffle', () => {
     expect(out).toHaveLength(input.length);
     expect([...out].sort((a, b) => a - b)).toEqual(input);
     expect(input).toEqual([1, 2, 3, 4, 5]);
-  });
-});
-
-describe('insertAtRandom', () => {
-  it('adds the item once at some position without mutating', () => {
-    const input = ['a', 'b', 'c'];
-    const out = insertAtRandom(input, 'x');
-    expect(out).toHaveLength(4);
-    expect(out.filter((v) => v === 'x')).toHaveLength(1);
-    expect(input).toEqual(['a', 'b', 'c']);
   });
 });

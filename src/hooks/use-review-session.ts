@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { completeDeckReview, getDeck, getDeckCards, setDeckNotificationId } from '@/db/queries';
 import type { Card, Deck } from '@/db/schema';
 import { cancelReminder, scheduleDeckReminder } from '@/lib/notifications';
-import { insertAtRandom, scheduleAfterReview, shuffle } from '@/lib/scheduling';
+import { scheduleAfterReview, shuffle } from '@/lib/scheduling';
 
 export interface ReviewSession {
   deck: Deck | undefined;
@@ -14,7 +14,7 @@ export interface ReviewSession {
   knew: number;
   missed: number;
   total: number;
-  /** Resolve the current card; missed cards are reshuffled back into the queue. */
+  /** Resolve the current card; missed cards go to the back of the queue. */
   answer: (knewIt: boolean) => void;
 }
 
@@ -53,12 +53,12 @@ export function useReviewSession(deckId: number): ReviewSession {
 
   const answer = useCallback(
     (knewIt: boolean) => {
-      // The queue only ever empties on a known card (missed cards are reinserted),
+      // The queue only ever empties on a known card (missed cards rejoin at the back),
       // so completion is an event of answering the last card — not a render effect.
       if (knewIt && queue.length === 1) completeSession();
       setQueue(([reviewed, ...rest]) => {
         if (!reviewed) return rest;
-        return knewIt ? rest : insertAtRandom(rest, reviewed);
+        return knewIt ? rest : [...rest, reviewed];
       });
       if (knewIt) setKnew((n) => n + 1);
       else setMissed((n) => n + 1);
