@@ -90,12 +90,13 @@ const dark: Palette = {
     borderStrong: '#38423D',
     borderSubtle: '#202724',
 
-    brand: '#FB7E38',
-    brandStrong: '#EA6212',
-    brandPress: '#C9500B',
-    brandSoft: '#3A2410',
-    brandSofter: '#241608',
-    brandOn: '#1B211F',
+    // Same brand ladder as light: the brand orange is identical in both themes.
+    brand: '#EA6212',
+    brandStrong: '#C9500B',
+    brandPress: '#9E3D08',
+    brandSoft: '#553517',
+    brandSofter: '#3B2510',
+    brandOn: '#FFFFFF',
     brandContrast: '#FFA46E',
 
     accent: '#F2C463',

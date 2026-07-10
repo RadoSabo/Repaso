@@ -10,7 +10,7 @@ import {
 
 import { Icon, type IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, SparkGradient, Spacing } from '@/constants/theme';
+import { Colors, Radius, SparkGradient, Spacing, type Palette } from '@/constants/theme';
 import { useShadows, useTheme } from '@/hooks/use-theme';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'spark';
@@ -38,6 +38,36 @@ const SIZES: Record<
 };
 
 /**
+ * Fill/label colors per variant — the single source of truth, exported so
+ * controls that mirror Button's look (e.g. InputMethodButton) stay in sync.
+ */
+export function buttonVariantColors(theme: Palette): {
+  bg: Record<ButtonVariant, string>;
+  fg: Record<ButtonVariant, string>;
+} {
+  return {
+    bg: {
+      primary: theme.brand,
+      // Secondary keeps its light-scheme look in dark mode too: the dark soft
+      // surface reads as a disabled button.
+      secondary: Colors.light.brandSoft,
+      ghost: 'transparent',
+      danger: theme.dangerSoft,
+      success: theme.success,
+      spark: 'transparent',
+    },
+    fg: {
+      primary: theme.brandOn,
+      secondary: Colors.light.brandContrast,
+      ghost: theme.brandContrast,
+      danger: theme.dangerStrong,
+      success: theme.textOnBrand,
+      spark: theme.textOnBrand,
+    },
+  };
+}
+
+/**
  * The Repaso button. `spark` is the AI-generate magic action — a warm gradient
  * fill with brand-tinted lift; every other variant is a flat themed surface.
  * Press gives a gentle shrink via opacity (Pressable feedback).
@@ -59,22 +89,7 @@ export function Button({
   const s = SIZES[size];
   const isDisabled = disabled || loading;
 
-  const bg: Record<ButtonVariant, string> = {
-    primary: theme.brand,
-    secondary: theme.brandSoft,
-    ghost: 'transparent',
-    danger: theme.dangerSoft,
-    success: theme.success,
-    spark: 'transparent',
-  };
-  const fg: Record<ButtonVariant, string> = {
-    primary: theme.brandOn,
-    secondary: theme.brandContrast,
-    ghost: theme.brandContrast,
-    danger: theme.dangerStrong,
-    success: theme.textOnBrand,
-    spark: theme.textOnBrand,
-  };
+  const { bg, fg } = buttonVariantColors(theme);
   const lift =
     variant === 'spark' ? shadows.spark : variant === 'primary' ? shadows.brand : undefined;
 

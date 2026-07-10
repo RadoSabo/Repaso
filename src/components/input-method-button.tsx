@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
+import { buttonVariantColors } from '@/components/button';
 import { Icon, type IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
@@ -42,7 +43,9 @@ export function InputMethodButton({
 }: InputMethodButtonProps) {
   const theme = useTheme();
   const isDisabled = disabled || busy;
-  const fg = active ? theme.brandOn : theme.brandContrast;
+  // Same palette as Button: `secondary` at rest, `primary` while active/recording.
+  const colors = buttonVariantColors(theme);
+  const fg = active ? colors.fg.primary : colors.fg.secondary;
 
   return (
     <Pressable
@@ -54,7 +57,7 @@ export function InputMethodButton({
       style={({ pressed }) => [
         styles.base,
         {
-          backgroundColor: active ? theme.brand : theme.brandSoft,
+          backgroundColor: active ? colors.bg.primary : colors.bg.secondary,
           opacity: isDisabled ? 0.5 : pressed ? 0.9 : 1,
           transform: [{ scale: pressed && !isDisabled ? 0.97 : 1 }],
         },

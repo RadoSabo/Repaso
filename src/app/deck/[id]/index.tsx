@@ -59,7 +59,7 @@ export default function DeckDetailScreen() {
               accessibilityLabel={t('common.edit')}
               hitSlop={12}
               onPress={() => router.push(`/deck/${deckId}/edit`)}>
-              <ThemedText type="smBold" themeColor="brandContrast">
+              <ThemedText type="smBold" themeColor="brand">
                 {t('common.edit')}
               </ThemedText>
             </Pressable>
