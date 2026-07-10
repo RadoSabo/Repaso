@@ -139,7 +139,6 @@
     "summary": "正解 {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "正解 {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "このデッキにはまだカードがありません。",
-    "done": "完了",
     "progressPrompt": "どのくらい覚えていましたか？",
     "studyAgain": "もう一度学習",
     "gotIt": "覚えた"

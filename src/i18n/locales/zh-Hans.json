@@ -139,7 +139,6 @@
     "summary": "你掌握了 {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "你掌握了 {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "此卡组还没有卡片。",
-    "done": "完成",
     "progressPrompt": "你掌握得怎么样？",
     "studyAgain": "再学一次",
     "gotIt": "学会了"

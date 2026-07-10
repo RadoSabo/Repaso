@@ -139,7 +139,6 @@
     "summary": "You knew {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "You knew {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "This deck has no cards yet.",
-    "done": "Done",
     "progressPrompt": "How well did you know it?",
     "studyAgain": "Study again",
     "gotIt": "Got it"

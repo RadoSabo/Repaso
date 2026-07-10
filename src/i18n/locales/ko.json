@@ -139,7 +139,6 @@
     "summary": "{{knew}} 맞힘 · {{nextReminder}} 🔁",
     "summaryWithRepeats": "{{knew}} 맞힘 · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "이 덱에는 아직 카드가 없어요.",
-    "done": "완료",
     "progressPrompt": "얼마나 잘 알았나요?",
     "studyAgain": "다시 학습",
     "gotIt": "알았어요"

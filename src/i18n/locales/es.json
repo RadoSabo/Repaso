@@ -148,7 +148,6 @@
     "summary": "Sabías {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "Sabías {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "Este mazo aún no tiene tarjetas.",
-    "done": "Listo",
     "progressPrompt": "¿Qué tan bien la sabías?",
     "studyAgain": "Estudiar de nuevo",
     "gotIt": "Lo tengo"

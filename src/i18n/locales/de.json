@@ -139,7 +139,6 @@
     "summary": "Du konntest {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "Du konntest {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "Dieser Stapel hat noch keine Karten.",
-    "done": "Fertig",
     "progressPrompt": "Wie gut konntest du es?",
     "studyAgain": "Nochmal lernen",
     "gotIt": "Kann ich"

@@ -148,7 +148,6 @@
     "summary": "Tu connaissais {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "Tu connaissais {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "Ce paquet n’a pas encore de cartes.",
-    "done": "Terminé",
     "progressPrompt": "À quel point la connaissais-tu ?",
     "studyAgain": "Réviser encore",
     "gotIt": "Compris"

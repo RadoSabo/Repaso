@@ -148,7 +148,6 @@
     "summary": "Ne sapevi {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "Ne sapevi {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "Questo mazzo non ha ancora carte.",
-    "done": "Fatto",
     "progressPrompt": "Quanto la sapevi?",
     "studyAgain": "Ripassa di nuovo",
     "gotIt": "Capito"

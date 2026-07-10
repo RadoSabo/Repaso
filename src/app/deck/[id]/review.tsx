@@ -19,6 +19,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { intervalDaysForStage } from '@/lib/scheduling';
 
 const DONE_TILE = 120;
+const PROGRESS_BAR_HEIGHT = 8;
+const ANSWER_BUTTON_MIN_HEIGHT = 56;
+const ANSWER_CHIP_SIZE = 30;
 
 export default function ReviewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -84,7 +87,7 @@ export default function ReviewScreen() {
       />
 
       <View style={styles.progress}>
-        <ProgressBar value={knew} max={total} height={8} />
+        <ProgressBar value={knew} max={total} height={PROGRESS_BAR_HEIGHT} />
       </View>
 
       <View style={styles.cardArea}>
@@ -188,16 +191,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
-    minHeight: 56,
+    minHeight: ANSWER_BUTTON_MIN_HEIGHT,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.lg,
   },
   answerLabel: { flexShrink: 1 },
   answerChip: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: ANSWER_CHIP_SIZE,
+    height: ANSWER_CHIP_SIZE,
+    borderRadius: ANSWER_CHIP_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

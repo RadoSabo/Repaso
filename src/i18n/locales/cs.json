@@ -157,7 +157,6 @@
     "summary": "Uměl jsi {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "Uměl jsi {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "Tento balíček zatím nemá žádné kartičky.",
-    "done": "Hotovo",
     "progressPrompt": "Jak dobře jsi to uměl?",
     "studyAgain": "Učit se znovu",
     "gotIt": "Umím"

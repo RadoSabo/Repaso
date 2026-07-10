@@ -148,7 +148,6 @@
     "summary": "Você sabia {{knew}} · {{nextReminder}} 🔁",
     "summaryWithRepeats": "Você sabia {{knew}} · {{repeats}} · {{nextReminder}} 🔁",
     "noCards": "Este baralho ainda não tem cartões.",
-    "done": "Concluído",
     "progressPrompt": "Quão bem você sabia?",
     "studyAgain": "Estudar de novo",
     "gotIt": "Entendi"
