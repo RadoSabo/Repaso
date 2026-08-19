@@ -24,7 +24,7 @@ survives reinstall / new device.
 | Decision | Choice |
 |---|---|
 | Scope | Paywall **+** cloud sync |
-| Free limit | **5 generations / month**, renewing (server-side count) |
+| Free limit | **10 generations / month**, renewing (server-side count) |
 | Pricing | **€2/mo** and **€20/yr** (~17% off, "2 months free" anchor) |
 | Billing | **RevenueCat** (`react-native-purchases`) — wraps App Store + Play Billing |
 | Backend | **Supabase** (Postgres + Auth + RLS + realtime) |
@@ -120,7 +120,7 @@ auto-stop at `MAX_RECORDING_SECONDS` (60).
 
 | Feature | Tier |
 |---|---|
-| Text generation — both **words** and **sentences**, parse **and** topic-expand | **Free quota** (5/mo, then Pro-unlimited) — counts exactly like today's generation |
+| Text generation — both **words** and **sentences**, parse **and** topic-expand | **Free quota** (10/mo, then Pro-unlimited) — counts exactly like today's generation |
 | **Voice** input (`/api/transcribe`) | **Pro-only** — no free allowance |
 | **Image** input (`/api/extract-text`) | **Pro-only** — no free allowance |
 
@@ -145,7 +145,7 @@ freemium funnel from the table in *Decisions locked*.
 
 - `transcribe+api.ts` / `extract-text+api.ts`: verify Supabase token + "unlimited"
   entitlement before calling OpenAI (they are Pro-only).
-- `generate+api.ts`: token verify + 5/mo quota as already described in Phase 2.
+- `generate+api.ts`: token verify + 10/mo quota as already described in Phase 2.
 - Models: text + image reuse `gpt-5.4-nano` (multimodal); voice uses
   `gpt-4o-mini-transcribe` (no cheap v5 batch transcription model exists).
 
@@ -220,7 +220,7 @@ freemium funnel from the table in *Decisions locked*.
 - `src/app/paywall.tsx` (new) — paywall screen.
 - `src/app/generate.tsx` — show quota, route to paywall at limit.
 - `src/db/` — sync engine wiring (Phase 5).
-- `src/lib/limits.ts` — add `FREE_GENERATIONS_PER_MONTH = 5`.
+- `src/lib/limits.ts` — add `FREE_GENERATIONS_PER_MONTH = 10`.
 - Server schema / migrations for Supabase tables + RLS.
 
 ### Already added (AI input/output features)
