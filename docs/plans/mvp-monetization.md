@@ -114,7 +114,7 @@ done** and put them on the critical path in parallel with Phase 1.
   for sending to the Pro-only routes (Phase 3).
 
 ### Phase 2 — Server-side free quota (KV + device ID)
-- `src/lib/limits.ts`: add `FREE_GENERATIONS = 5` and `FREE_PERIOD_DAYS = 30`
+- `src/lib/limits.ts`: add `FREE_GENERATIONS = 10` and `FREE_PERIOD_DAYS = 30`
   (named constants, no magic numbers).
 - `src/lib/device-id.ts` (new): `getDeviceId(): Promise<string>` — a stable,
   reinstall-surviving id. **iOS:** a UUID generated once and stored in the

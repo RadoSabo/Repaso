@@ -15,7 +15,7 @@ export const MAX_RECORDING_SECONDS = 60;
  * Free tier: this many successful generations per rolling period before Repaso
  * Pro is required. Enforced server-side (see `app/api/generate+api.ts`).
  */
-export const FREE_GENERATIONS = 5;
+export const FREE_GENERATIONS = 10;
 
 /** Length of the rolling free-quota window, as a TTL on the per-device counter. */
 export const FREE_PERIOD_DAYS = 30;
